@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:drift/native.dart';
 import 'package:drive_map/src/features/analytics/trip_analyzer.dart';
 import 'package:drive_map/src/infrastructure/trip_database.dart';

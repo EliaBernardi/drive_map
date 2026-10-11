@@ -21,6 +21,7 @@ abstract interface class ObdTransport {
 class PlatformObdTransport implements ObdTransport {
   static const _methods = MethodChannel('drivemap/obd');
   static const _events = EventChannel('drivemap/obd_bytes');
+  static const _discovery = EventChannel('drivemap/obd_discovery');
   Stream<Uint8List>? _stream;
   static bool get supported =>
       !kIsWeb &&
@@ -45,10 +46,17 @@ class PlatformObdTransport implements ObdTransport {
   }
 
   static Future<void> pairing() => _methods.invokeMethod<void>('pairing');
-  @override
-  Stream<Uint8List> get bytes => _stream ??= _events
+  static Stream<Map<String, dynamic>> get discovery => _discovery
       .receiveBroadcastStream()
-      .map(
+      .map((event) => Map<String, dynamic>.from(event as Map));
+  static Future<void> scan() => _methods.invokeMethod<void>('scan');
+  static Future<void> stopScan() => _methods.invokeMethod<void>('stopScan');
+  static Future<void> bond(String id) =>
+      _methods.invokeMethod<void>('bond', {'id': id});
+  static Future<void> cancelBond() => _methods.invokeMethod<void>('cancelBond');
+  @override
+  Stream<Uint8List> get bytes =>
+      _stream ??= _events.receiveBroadcastStream().map(
         (event) => event is Uint8List
             ? event
             : Uint8List.fromList((event as List).cast<int>()),

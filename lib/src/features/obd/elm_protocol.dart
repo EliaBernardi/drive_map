@@ -49,7 +49,7 @@ class ElmChannel {
     if (_poisoned) throw const ObdException('Canale OBD da riconnettere.');
     if (_pending != null) throw StateError('Concurrent ELM request');
     if (!RegExp(
-      r'^(ATZ|ATE0|ATL0|ATS1|ATH1|ATSP0|ATAT1|ATST64|ATDP|01[0-9A-F]{2})$',
+      r'^(ATI|ATZ|ATE0|ATL0|ATS1|ATH1|ATSP0|ATAT1|ATST64|ATDP|01[0-9A-F]{2})$',
     ).hasMatch(command)) {
       throw ArgumentError.value(command, 'command', 'Comando non consentito');
     }

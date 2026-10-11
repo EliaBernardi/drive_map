@@ -1,0 +1,243 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+import '../features/obd/adapter_check.dart';
+import '../features/obd/obd_transport.dart';
+
+class AdapterCheckScreen extends StatefulWidget {
+  const AdapterCheckScreen({super.key});
+
+  @override
+  State<AdapterCheckScreen> createState() => _AdapterCheckScreenState();
+}
+
+class _AdapterCheckScreenState extends State<AdapterCheckScreen>
+    with WidgetsBindingObserver {
+  final AdapterCheck check = AdapterCheck();
+  bool get _android =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      if (check.connected) unawaited(check.disconnect());
+    }
+    if (state == AppLifecycleState.resumed &&
+        check.showDevices &&
+        !check.connected &&
+        !check.busy &&
+        !check.scanning) {
+      unawaited(check.refreshDevices());
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    check.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('DriveMap')),
+    body: SafeArea(
+      child: AnimatedBuilder(
+        animation: check,
+        builder: (context, _) => Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680),
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                Text(
+                  'Collega la tua OBDLink',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Accendi il quadro e metti l’adattatore in modalità associazione. La ricerca usa Bluetooth Classic.',
+                ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed:
+                      !_android ||
+                          check.busy ||
+                          check.scanning ||
+                          check.connected
+                      ? null
+                      : check.scan,
+                  icon: const Icon(Icons.add_circle_outline),
+                  label: const Text('Aggiungi OBD'),
+                ),
+                if (!_android)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 12),
+                    child: Text(
+                      'La ricerca Bluetooth Classic è disponibile su Android.',
+                    ),
+                  ),
+                if (check.showDevices) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Dispositivi Bluetooth',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      if (check.scanning)
+                        TextButton(
+                          onPressed: check.stopScan,
+                          child: const Text('Ferma ricerca'),
+                        )
+                      else if (!check.busy && !check.connected)
+                        IconButton(
+                          tooltip: 'Cerca di nuovo',
+                          onPressed: check.scan,
+                          icon: const Icon(Icons.refresh),
+                        ),
+                    ],
+                  ),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Mostra solo OBDLink'),
+                    value: check.onlyObdLink,
+                    onChanged: check.setObdLinkFilter,
+                  ),
+                  if (check.scanning)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: LinearProgressIndicator(),
+                    ),
+                  if (check.visibleDevices.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        check.scanning
+                            ? 'Ricerca in corso… Avvicina il telefono e attiva il pairing su MX+.'
+                            : 'Nessun dispositivo visibile. Riprova o disattiva il filtro OBDLink.',
+                      ),
+                    ),
+                  for (final device in check.visibleDevices)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.bluetooth),
+                          title: Text(
+                            device.name.isEmpty
+                                ? 'Dispositivo senza nome'
+                                : device.name,
+                          ),
+                          subtitle: Text(
+                            '${device.id} · ${device.paired ? 'Già associato' : 'Da associare'}',
+                          ),
+                          trailing: const Icon(Icons.chevron_right),
+                          enabled: !check.busy && !check.connected,
+                          onTap: () => check.selectAndConnect(device),
+                        ),
+                      ),
+                    ),
+                ],
+                const SizedBox(height: 20),
+                Text(
+                  'Stato: ${check.status}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                if (check.busy)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: LinearProgressIndicator(),
+                  ),
+                if (check.error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      check.error!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                if (check.selected != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Dispositivo selezionato: ${check.selected!.name}',
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (check.connected)
+                      OutlinedButton(
+                        onPressed: check.busy ? null : check.identify,
+                        child: const Text('Ripeti ATI'),
+                      ),
+                    if (check.connected || check.busy)
+                      OutlinedButton(
+                        onPressed: check.disconnect,
+                        child: Text(
+                          check.connected ? 'Disconnetti' : 'Annulla',
+                        ),
+                      ),
+                    if (_android)
+                      TextButton.icon(
+                        onPressed: () async {
+                          try {
+                            await check.openPairing();
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(readableError(e))),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.settings_bluetooth),
+                        label: const Text('Impostazioni Bluetooth'),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 28),
+                Text(
+                  'Comandi e risposte',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: SelectableText(
+                    check.log.isEmpty
+                        ? 'Nessun comando inviato.'
+                        : check.log.reversed.join('\n'),
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}

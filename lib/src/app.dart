@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers.dart';
 import 'presentation/components.dart';
+import 'presentation/adapter_check_screen.dart';
 import 'presentation/dashboard_screen.dart';
 import 'presentation/settings_screen.dart';
 import 'presentation/trips_screen.dart';
@@ -52,7 +53,7 @@ class DriveMapApp extends StatelessWidget {
         ),
       ),
     ),
-    home: const DriveMapShell(),
+    home: const AdapterCheckScreen(),
   );
 }
 
@@ -274,14 +275,17 @@ class _Brand extends StatelessWidget {
       Icon(Icons.polyline_rounded, color: DriveColors.accent, size: 28),
       SizedBox(width: 10),
       Flexible(
-        child: FittedBox(fit: BoxFit.scaleDown, child: Text(
-          'DriveMap',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -.8,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            'DriveMap',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -.8,
+            ),
           ),
-        )),
+        ),
       ),
     ],
   );
