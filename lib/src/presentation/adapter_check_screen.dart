@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../domain/telemetry.dart';
 import '../features/obd/adapter_check.dart';
 import '../features/obd/obd_transport.dart';
 
@@ -176,6 +179,52 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                       'Dispositivo selezionato: ${check.selected!.name}',
                     ),
                   ),
+                if (check.connected) ...[
+                  const SizedBox(height: 12),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'PID standard disponibili',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(check.pidStatus),
+                          if (check.ecu != null ||
+                              check.protocol.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              [
+                                if (check.ecu != null)
+                                  'Centralina ${check.ecu}',
+                                if (check.protocol.isNotEmpty) check.protocol,
+                              ].join(' · '),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                          if (check.supportedPids.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [
+                                for (final code
+                                    in check.supportedPids.toList()..sort())
+                                  Chip(
+                                    label: Text(_pidLabel(code)),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
@@ -212,6 +261,12 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                   ],
                 ),
                 const SizedBox(height: 28),
+                OutlinedButton.icon(
+                  onPressed: () => _exportLogs(context),
+                  icon: const Icon(Icons.download_outlined),
+                  label: const Text('Esporta log in un file .txt'),
+                ),
+                const SizedBox(height: 20),
                 Text(
                   'Comandi e risposte',
                   style: Theme.of(context).textTheme.titleMedium,
@@ -240,4 +295,52 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
       ),
     ),
   );
+
+  String _pidLabel(int code) {
+    final hex = code.toRadixString(16).padLeft(2, '0').toUpperCase();
+    for (final pid in Pid.values) {
+      if (pid.code == code) return 'PID $hex · ${pid.label}';
+    }
+    return 'PID $hex';
+  }
+
+  Future<void> _exportLogs(BuildContext context) async {
+    final now = DateTime.now();
+    String two(int value) => value.toString().padLeft(2, '0');
+    final fileName =
+        '${now.year}${two(now.month)}${two(now.day)}_${two(now.hour)}${two(now.minute)}${two(now.second)}.txt';
+    final lines = <String>[
+      'DriveMap · log diagnostico',
+      'Esportato: ${now.toIso8601String()}',
+      'Dispositivo: ${check.selected?.name ?? 'nessuno'}',
+      'Stato connessione: ${check.status}',
+      'Stato PID: ${check.pidStatus}',
+      'Centralina: ${check.ecu ?? 'non rilevata'}',
+      'Protocollo: ${check.protocol.isEmpty ? 'non rilevato' : check.protocol}',
+      'PID standard: ${check.supportedPids.isEmpty ? 'nessuno rilevato' : (check.supportedPids.toList()..sort()).join(', ')}',
+      '',
+      'Eventi e traffico seriale:',
+      if (check.log.isEmpty)
+        'Nessun evento registrato in questa sessione.'
+      else
+        ...check.log,
+    ];
+    try {
+      final saved = await FilePicker.saveFile(
+        fileName: fileName,
+        bytes: Uint8List.fromList(utf8.encode(lines.join('\n'))),
+        mimeType: 'text/plain',
+      );
+      if (!context.mounted || saved == null) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Log salvato in $saved')));
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Esportazione non riuscita: ${readableError(e)}'),
+        ),
+      );
+    }
+  }
 }

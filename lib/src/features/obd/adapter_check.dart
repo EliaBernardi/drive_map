@@ -24,7 +24,11 @@ class AdapterCheck extends ChangeNotifier {
   bool showDevices = false;
   bool onlyObdLink = true;
   String status = 'Disconnesso';
+  String pidStatus = 'PID non ancora verificati';
+  String protocol = '';
   String? error;
+  String? ecu;
+  Set<int> supportedPids = {};
   ObdDevice? selected;
   List<ObdDevice> devices = [];
   List<ObdDevice> nearby = [];
@@ -37,7 +41,7 @@ class AdapterCheck extends ChangeNotifier {
 
   void _log(String message) {
     log.add('${DateTime.now().toLocal().toIso8601String()}  $message');
-    if (log.length > 100) log.removeAt(0);
+    if (log.length > 5000) log.removeAt(0);
     _update();
   }
 
@@ -51,6 +55,7 @@ class AdapterCheck extends ChangeNotifier {
       if (!devices.any((device) => device.id == selected?.id)) selected = null;
     } catch (e) {
       error = readableError(e);
+      _log('Errore lettura dispositivi associati: $error');
     } finally {
       busy = false;
       _update();
@@ -83,6 +88,7 @@ class AdapterCheck extends ChangeNotifier {
     final token = ++_scanGeneration;
     error = null;
     nearby = [];
+    _log('Avvio ricerca Bluetooth Classic');
     scanning = true;
     showDevices = true;
     status = 'Ricerca Bluetooth in corso…';
@@ -110,10 +116,16 @@ class AdapterCheck extends ChangeNotifier {
             if (item.id != id) item,
           device,
         ];
+        if (previous.isEmpty) {
+          _log(
+            'Dispositivo rilevato: ${device.name.isEmpty ? '(nome non disponibile)' : device.name} ($id)',
+          );
+        }
         _update();
       },
       onError: (Object e) {
         error = readableError(e);
+        _log('Errore stream ricerca Bluetooth: $error');
         unawaited(stopScan());
       },
     );
@@ -129,7 +141,7 @@ class AdapterCheck extends ChangeNotifier {
         const Duration(seconds: 25),
         () => unawaited(stopScan()),
       );
-      _log('Ricerca Bluetooth Classic avviata');
+      _log('Ricerca Bluetooth Classic attiva');
     } catch (e) {
       error = readableError(e);
       _log('Errore ricerca: $error');
@@ -140,6 +152,7 @@ class AdapterCheck extends ChangeNotifier {
   Future<void> stopScan() async {
     ++_scanGeneration;
     if (!scanning && _discovery == null) return;
+    final wasScanning = scanning;
     scanning = false;
     _scanTimer?.cancel();
     _scanTimer = null;
@@ -150,8 +163,10 @@ class AdapterCheck extends ChangeNotifier {
       await PlatformObdTransport.stopScan();
     } catch (e) {
       error ??= readableError(e);
+      _log('Errore arresto ricerca Bluetooth: $error');
     }
     if (!busy && !connected) status = 'Ricerca terminata';
+    if (wasScanning) _log('Ricerca Bluetooth terminata');
     _update();
   }
 
@@ -174,6 +189,10 @@ class AdapterCheck extends ChangeNotifier {
     busy = true;
     error = null;
     status = 'Connessione a ${device.name}…';
+    pidStatus = 'PID non ancora verificati';
+    supportedPids = {};
+    ecu = null;
+    protocol = '';
     _update();
     _log('Connessione RFCOMM/SPP a ${device.name} (${device.id})');
     try {
@@ -209,7 +228,7 @@ class AdapterCheck extends ChangeNotifier {
       status = 'Connesso a ${device.name}';
       _update();
       _log('Socket RFCOMM connesso');
-      await _identify(token);
+      await _identifyAndDiscover(token);
     } catch (e) {
       if (token == _generation) {
         error = readableError(e);
@@ -230,7 +249,7 @@ class AdapterCheck extends ChangeNotifier {
     error = null;
     _update();
     try {
-      await _identify(_generation);
+      await _identifyAndDiscover(_generation);
     } catch (e) {
       error = readableError(e);
       _log('Errore: $error');
@@ -241,22 +260,124 @@ class AdapterCheck extends ChangeNotifier {
     }
   }
 
-  Future<void> _identify(int token) async {
-    _log('→ ATI');
+  Future<String> _request(String command, {Duration? timeout}) async {
+    _log('→ $command');
     final response = await _channel!.request(
-      'ATI',
-      timeout: const Duration(seconds: 8),
+      command,
+      timeout: timeout ?? const Duration(seconds: 8),
     );
-    if (token != _generation) return;
     final cleaned = response.trim();
     _log(
       '← ${cleaned.isEmpty ? '(risposta vuota)' : cleaned.replaceAll(RegExp(r'[\r\n]+'), ' | ')}',
     );
-    if (cleaned.isEmpty || cleaned.toUpperCase().contains('?')) {
+    return cleaned;
+  }
+
+  Future<void> _identifyAndDiscover(int token) async {
+    final response = await _request('ATI');
+    if (token != _generation) return;
+    if (response.isEmpty || response.toUpperCase().contains('?')) {
       throw const ObdException('Risposta ATI non valida.');
     }
-    status = 'Adattatore identificato';
+    status = 'Adattatore identificato · ricerca PID in corso';
+    pidStatus = 'Configuro l’adattatore e interrogo la centralina…';
     _update();
+    await _discoverPids(token);
+  }
+
+  Future<void> _discoverPids(int token) async {
+    try {
+      for (final command in [
+        'ATE0',
+        'ATL0',
+        'ATS1',
+        'ATH1',
+        'ATSP0',
+        'ATAT1',
+        'ATST64',
+      ]) {
+        final response = await _request(command);
+        if (token != _generation) return;
+        if (!response.toUpperCase().contains('OK')) {
+          throw ObdException('L’adattatore non ha confermato $command.');
+        }
+      }
+
+      pidStatus = 'Interrogo i PID standard (01–20)…';
+      _update();
+      final firstResponse = await _request(
+        '0100',
+        timeout: const Duration(seconds: 18),
+      );
+      if (token != _generation) return;
+      final firstReplies = PidDecoder.replies(firstResponse, 0);
+      if (firstReplies.isEmpty) {
+        pidStatus = PidDecoder.noData(firstResponse)
+            ? 'La centralina non ha risposto a 0100 (NO DATA).'
+            : 'Nessuna risposta OBD valida a 0100.';
+        status = 'Adattatore connesso · centralina non rilevata';
+        _log(pidStatus);
+        _update();
+        return;
+      }
+
+      final primary = firstReplies.firstWhere(
+        (reply) => reply.ecu == '7E8' || reply.ecu == '18DAF110',
+        orElse: () => firstReplies.first,
+      );
+      ecu = primary.ecu;
+      final codes = PidDecoder.supported(primary.bytes, 0);
+      for (
+        var base = 0x20;
+        base <= 0xE0 && codes.contains(base);
+        base += 0x20
+      ) {
+        final command =
+            '01${base.toRadixString(16).padLeft(2, '0').toUpperCase()}';
+        pidStatus = 'Interrogo i PID ${base + 1}–${base + 0x20}…';
+        _update();
+        final pageResponse = await _request(
+          command,
+          timeout: const Duration(seconds: 12),
+        );
+        if (token != _generation) return;
+        final page = PidDecoder.replies(
+          pageResponse,
+          base,
+        ).where((reply) => reply.ecu == ecu).firstOrNull;
+        if (page == null) {
+          _log('La centralina $ecu non ha fornito la bitmap di $command.');
+          break;
+        }
+        try {
+          codes.addAll(PidDecoder.supported(page.bytes, base));
+        } on FormatException catch (e) {
+          _log('Bitmap incompleta per $command: $e');
+          break;
+        }
+      }
+      if (token != _generation) return;
+      codes.removeWhere(
+        (code) => code >= 0x20 && code <= 0xE0 && code % 0x20 == 0,
+      );
+      supportedPids = Set.unmodifiable(codes);
+      protocol = (await _request('ATDP'))
+          .replaceAll(RegExp(r'[\r\n]+'), ' ')
+          .trim();
+      if (token != _generation) return;
+      pidStatus = supportedPids.isEmpty
+          ? 'Nessun PID standard supportato rilevato.'
+          : '${supportedPids.length} PID standard rilevati sulla centralina $ecu.';
+      status = 'Adattatore identificato';
+      _log('$pidStatus${protocol.isEmpty ? '' : ' · protocollo $protocol'}');
+      _update();
+    } catch (e) {
+      if (token != _generation) return;
+      pidStatus = 'Verifica PID non completata: ${readableError(e)}';
+      status = 'Adattatore connesso · verifica PID incompleta';
+      _log(pidStatus);
+      _update();
+    }
   }
 
   void _lost(int token, String reason) {
