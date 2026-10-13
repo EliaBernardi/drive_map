@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers.dart';
+import 'localization/locale_controller.dart';
+import 'localization/localization.dart';
 import 'theme/app_theme.dart';
 import 'presentation/telemetry_screen.dart';
 import 'presentation/home_screen.dart';
@@ -11,14 +13,17 @@ import 'presentation/main_scaffold.dart';
 import 'presentation/profile_screen.dart';
 import 'presentation/trips_screen.dart';
 
-class DriveMapApp extends StatelessWidget {
+class DriveMapApp extends ConsumerWidget {
   const DriveMapApp({super.key});
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) => MaterialApp(
     title: 'DRIVE MAP',
     debugShowCheckedModeBanner: false,
     theme: AppTheme.light,
+    locale: ref.watch(localeProvider).asData?.value ?? const Locale('it'),
+    supportedLocales: AppLocalizations.supportedLocales,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
     home: const DriveMapShell(),
   );
 }
@@ -68,9 +73,9 @@ class _DriveMapShellState extends ConsumerState<DriveMapShell>
       onDestinationSelected: _select,
       connectionLabel: connection.ready
           ? connection.demo
-                ? 'Demo'
-                : 'OBD connesso'
-          : 'Offline',
+                ? context.l10n.demo
+                : context.l10n.obdConnected
+          : context.l10n.offline,
       connectionColor: connection.ready
           ? connection.demo
                 ? DriveColors.amber

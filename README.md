@@ -8,6 +8,10 @@ La barra inferiore compatta contiene quattro pagine: **Home** per connessione e 
 
 `AppTheme` centralizza il tema verde e grigio chiaro. `MainScaffold` contiene intestazione e navigazione; il piccolo logo isometrico è disegnato in Flutter, senza asset o librerie aggiuntive.
 
+In **Profilo → Lingua** si può scegliere **Italiano** o **English**. La scelta aggiorna subito tutte le schermate, conserva la sessione OBD e il viaggio in corso e viene salvata sul telefono per gli avvii successivi. La lingua iniziale è l’italiano.
+
+Le traduzioni sono in `lib/l10n/app_it.arb` e `lib/l10n/app_en.arb`. Flutter genera le classi tipizzate in `lib/src/localization/generated` usando `l10n.yaml`; dopo una modifica ai file ARB eseguire `flutter gen-l10n`. `localeProvider` gestisce la preferenza indipendentemente dalla telemetria. La UI traduce anche gli stati diagnostici e le descrizioni dell’analisi; le risposte seriali, i dati salvati e lo schema dei CSV/JSON conservano il formato originale. Gli eventuali messaggi tecnici sconosciuti del sistema o dell’adattatore restano visibili integralmente.
+
 ## Prova sul Samsung Galaxy S25 Ultra
 
 1. Inserire MX+ nella porta OBD e accendere il quadro. Chiudere altre app connesse all'adattatore.

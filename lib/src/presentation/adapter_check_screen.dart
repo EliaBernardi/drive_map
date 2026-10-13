@@ -5,9 +5,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../localization/localization.dart';
 import '../domain/telemetry.dart';
 import '../features/obd/adapter_check.dart';
-import '../features/obd/obd_transport.dart';
 
 class AdapterCheckScreen extends StatefulWidget {
   const AdapterCheckScreen({super.key});
@@ -62,13 +62,11 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
               padding: const EdgeInsets.all(20),
               children: [
                 Text(
-                  'Collega la tua OBDLink',
+                  context.l10n.connectObdLink,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Accendi il quadro e metti l’adattatore in modalità associazione. La ricerca usa Bluetooth Classic.',
-                ),
+                Text(context.l10n.scanInstructions),
                 const SizedBox(height: 24),
                 FilledButton.icon(
                   onPressed:
@@ -79,14 +77,12 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                       ? null
                       : check.scan,
                   icon: const Icon(Icons.add_circle_outline),
-                  label: const Text('Aggiungi OBD'),
+                  label: Text(context.l10n.addObd),
                 ),
                 if (!_android)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 12),
-                    child: Text(
-                      'La ricerca Bluetooth Classic è disponibile su Android.',
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(context.l10n.androidScanOnly),
                   ),
                 if (check.showDevices) ...[
                   const SizedBox(height: 16),
@@ -94,18 +90,18 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                     children: [
                       Expanded(
                         child: Text(
-                          'Dispositivi Bluetooth',
+                          context.l10n.bluetoothDevices,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
                       if (check.scanning)
                         TextButton(
                           onPressed: check.stopScan,
-                          child: const Text('Ferma ricerca'),
+                          child: Text(context.l10n.stopSearch),
                         )
                       else if (!check.busy && !check.connected)
                         IconButton(
-                          tooltip: 'Cerca di nuovo',
+                          tooltip: context.l10n.searchAgain,
                           onPressed: check.scan,
                           icon: const Icon(Icons.refresh),
                         ),
@@ -113,7 +109,7 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                   ),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Mostra solo OBDLink'),
+                    title: Text(context.l10n.onlyObdLink),
                     value: check.onlyObdLink,
                     onChanged: check.setObdLinkFilter,
                   ),
@@ -127,8 +123,8 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Text(
                         check.scanning
-                            ? 'Ricerca in corso… Avvicina il telefono e attiva il pairing su MX+.'
-                            : 'Nessun dispositivo visibile. Riprova o disattiva il filtro OBDLink.',
+                            ? context.l10n.scanningNearby
+                            : context.l10n.noVisibleDevices,
                       ),
                     ),
                   for (final device in check.visibleDevices)
@@ -139,11 +135,11 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                           leading: const Icon(Icons.bluetooth),
                           title: Text(
                             device.name.isEmpty
-                                ? 'Dispositivo senza nome'
+                                ? context.l10n.unnamedDevice
                                 : device.name,
                           ),
                           subtitle: Text(
-                            '${device.id} · ${device.paired ? 'Già associato' : 'Da associare'}',
+                            '${device.id} · ${device.paired ? context.l10n.alreadyPaired : context.l10n.notPaired}',
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           enabled: !check.busy && !check.connected,
@@ -154,7 +150,7 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                 ],
                 const SizedBox(height: 20),
                 Text(
-                  'Stato: ${check.status}',
+                  context.l10n.statusLabel(context.l10n.message(check.status)),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 if (check.busy)
@@ -166,7 +162,7 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      check.error!,
+                      context.l10n.message(check.error!),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -176,7 +172,7 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      'Dispositivo selezionato: ${check.selected!.name}',
+                      context.l10n.selectedDevice(check.selected!.name),
                     ),
                   ),
                 if (check.connected) ...[
@@ -188,18 +184,18 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'PID standard disponibili',
+                            context.l10n.standardPids,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 6),
-                          Text(check.pidStatus),
+                          Text(context.l10n.message(check.pidStatus)),
                           if (check.ecu != null ||
                               check.protocol.isNotEmpty) ...[
                             const SizedBox(height: 4),
                             Text(
                               [
                                 if (check.ecu != null)
-                                  'Centralina ${check.ecu}',
+                                  context.l10n.ecuLabel(check.ecu!),
                                 if (check.protocol.isNotEmpty) check.protocol,
                               ].join(' · '),
                               style: Theme.of(context).textTheme.bodySmall,
@@ -214,7 +210,7 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                                 for (final code
                                     in check.supportedPids.toList()..sort())
                                   Chip(
-                                    label: Text(_pidLabel(code)),
+                                    label: Text(_pidLabel(context, code)),
                                     visualDensity: VisualDensity.compact,
                                   ),
                               ],
@@ -237,13 +233,15 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                     if (check.connected)
                       OutlinedButton(
                         onPressed: check.busy ? null : check.identify,
-                        child: const Text('Ripeti ATI'),
+                        child: Text(context.l10n.repeatAti),
                       ),
                     if (check.connected || check.busy)
                       OutlinedButton(
                         onPressed: check.disconnect,
                         child: Text(
-                          check.connected ? 'Disconnetti' : 'Annulla',
+                          check.connected
+                              ? context.l10n.disconnect
+                              : context.l10n.cancel,
                         ),
                       ),
                     if (_android)
@@ -254,13 +252,13 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(readableError(e))),
+                                SnackBar(content: Text(context.l10n.error(e))),
                               );
                             }
                           }
                         },
                         icon: const Icon(Icons.settings_bluetooth),
-                        label: const Text('Impostazioni Bluetooth'),
+                        label: Text(context.l10n.bluetoothSettings),
                       ),
                   ],
                 ),
@@ -268,11 +266,11 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                 OutlinedButton.icon(
                   onPressed: () => _exportLogs(context),
                   icon: const Icon(Icons.download_outlined),
-                  label: const Text('Esporta log in un file .txt'),
+                  label: Text(context.l10n.exportLogs),
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Comandi e risposte',
+                  context.l10n.commandsResponses,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
@@ -284,7 +282,7 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                   ),
                   child: SelectableText(
                     check.log.isEmpty
-                        ? 'Nessun comando inviato.'
+                        ? context.l10n.noCommands
                         : check.log.reversed.join('\n'),
                     style: const TextStyle(
                       fontFamily: 'monospace',
@@ -300,10 +298,12 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
     ),
   );
 
-  String _pidLabel(int code) {
+  String _pidLabel(BuildContext context, int code) {
     final hex = code.toRadixString(16).padLeft(2, '0').toUpperCase();
     for (final pid in Pid.values) {
-      if (pid.code == code) return 'PID $hex · ${pid.label}';
+      if (pid.code == code) {
+        return 'PID $hex · ${context.l10n.pidLabel(pid.code)}';
+      }
     }
     return 'PID $hex';
   }
@@ -315,13 +315,11 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Test dei parametri · 30 secondi',
+            context.l10n.pidTestTitle,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Interroga in sequenza i PID principali, il livello carburante e il contachilometri. Il carburante è espresso in percentuale, non in litri. Avvia il test a veicolo fermo; non usare il telefono durante la guida.',
-          ),
+          Text(context.l10n.pidTestNotice),
           if (check.pidTestRunning) ...[
             const SizedBox(height: 16),
             LinearProgressIndicator(value: check.pidTestProgress),
@@ -330,26 +328,29 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
             const SizedBox(height: 10),
             Text(
               check.pidTestRunning
-                  ? 'Test in corso · ${check.pidTestElapsedSeconds} / 30 s'
-                  : check.pidTestMessage!,
+                  ? context.l10n.testProgress('${check.pidTestElapsedSeconds}')
+                  : context.l10n.message(check.pidTestMessage!),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
           if (check.pidTestResults.isNotEmpty) ...[
             const SizedBox(height: 14),
             Text(
-              'Consumo medio stimato nel test',
+              context.l10n.testConsumption,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 4),
             Text(
               check.averageConsumptionLPer100Km == null
-                  ? '— L/100 km · distanza troppo breve o letture non disponibili'
+                  ? context.l10n.testConsumptionUnavailable
                   : '${check.averageConsumptionLPer100Km!.toStringAsFixed(1)} L/100 km',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             Text(
-              'Calcolato da portata carburante e velocità; non è una media storica. Distanza ${check.testDistanceKm.toStringAsFixed(3)} km · carburante stimato ${check.testFuelLiters.toStringAsFixed(4)} L.',
+              context.l10n.testConsumptionNotice(
+                check.testDistanceKm.toStringAsFixed(3),
+                check.testFuelLiters.toStringAsFixed(4),
+              ),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
@@ -371,7 +372,7 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${result.label} · ${result.hex}',
+                                  '${context.l10n.pidLabel(result.code)} · ${result.hex}',
                                   style: Theme.of(context).textTheme.labelLarge,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -385,8 +386,30 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                                 ),
                                 Text(
                                   result.validSamples == 0
-                                      ? 'Nessun valore valido · ${result.failedSamples} risposte non valide'
-                                      : 'Media ${_testNumber(result.average, result.code)} ${result.unit} · min ${_testNumber(result.minimum, result.code)} · max ${_testNumber(result.maximum, result.code)} · ${result.validSamples} letture${result.failedSamples == 0 ? '' : ' · ${result.failedSamples} senza dato'}',
+                                      ? context.l10n.noValidSamples(
+                                          '${result.failedSamples}',
+                                        )
+                                      : context.l10n.sampleSummary(
+                                              _testNumber(
+                                                result.average,
+                                                result.code,
+                                              ),
+                                              result.unit,
+                                              _testNumber(
+                                                result.minimum,
+                                                result.code,
+                                              ),
+                                              _testNumber(
+                                                result.maximum,
+                                                result.code,
+                                              ),
+                                              '${result.validSamples}',
+                                            ) +
+                                            (result.failedSamples == 0
+                                                ? ''
+                                                : context.l10n.failedSamples(
+                                                    '${result.failedSamples}',
+                                                  )),
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ],
@@ -404,7 +427,7 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
             OutlinedButton.icon(
               onPressed: check.cancelPidTest,
               icon: const Icon(Icons.stop_circle_outlined),
-              label: const Text('Interrompi test'),
+              label: Text(context.l10n.stopTest),
             )
           else if (check.connected)
             FilledButton.icon(
@@ -412,12 +435,12 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                   ? null
                   : check.runPidTest,
               icon: const Icon(Icons.monitor_heart_outlined),
-              label: const Text('Avvia test PID 30 s'),
+              label: Text(context.l10n.startPidTest),
             ),
           if (check.connected && check.testablePids.isEmpty)
-            const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Text('Nessun PID principale disponibile per il test.'),
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(context.l10n.noTestablePids),
             ),
         ],
       ),
@@ -436,20 +459,25 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
     final fileName =
         '${now.year}${two(now.month)}${two(now.day)}_${two(now.hour)}${two(now.minute)}${two(now.second)}.txt';
     final lines = <String>[
-      'DriveMap · log diagnostico',
-      'Esportato: ${now.toIso8601String()}',
-      'Dispositivo: ${check.selected?.name ?? 'nessuno'}',
-      'Stato connessione: ${check.status}',
-      'Stato PID: ${check.pidStatus}',
-      'Centralina: ${check.ecu ?? 'non rilevata'}',
-      'Protocollo: ${check.protocol.isEmpty ? 'non rilevato' : check.protocol}',
-      'PID standard: ${check.supportedPids.isEmpty ? 'nessuno rilevato' : (check.supportedPids.toList()..sort()).join(', ')}',
+      context.l10n.diagnosticLog,
+      context.l10n.logExported(now.toIso8601String()),
+      context.l10n.logDevice(check.selected?.name ?? context.l10n.none),
+      context.l10n.logConnection(context.l10n.message(check.status)),
+      context.l10n.logPids(context.l10n.message(check.pidStatus)),
+      context.l10n.logEcu(check.ecu ?? context.l10n.notDetected),
+      context.l10n.logProtocol(
+        check.protocol.isEmpty
+            ? context.l10n.protocolNotDetected
+            : check.protocol,
+      ),
+      context.l10n.logPidList(
+        check.supportedPids.isEmpty
+            ? context.l10n.noPidsDetected
+            : (check.supportedPids.toList()..sort()).join(', '),
+      ),
       '',
-      'Eventi e traffico seriale:',
-      if (check.log.isEmpty)
-        'Nessun evento registrato in questa sessione.'
-      else
-        ...check.log,
+      context.l10n.serialEvents,
+      if (check.log.isEmpty) context.l10n.noLogEvents else ...check.log,
     ];
     try {
       final saved = await FilePicker.saveFile(
@@ -458,13 +486,14 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
         mimeType: 'text/plain',
       );
       if (!context.mounted || saved == null) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Log salvato in $saved')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.logSaved(saved.toString()))),
+      );
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Esportazione non riuscita: ${readableError(e)}'),
+          content: Text(context.l10n.exportFailed(context.l10n.error(e))),
         ),
       );
     }

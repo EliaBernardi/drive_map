@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../localization/localization.dart';
 import '../domain/telemetry.dart';
 import '../providers.dart';
 import 'components.dart';
@@ -21,19 +22,19 @@ class TelemetryScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionTitle(
-            'Il motore, dal vivo.',
-            subtitle: 'Uno sguardo ai valori della centralina.',
+          SectionTitle(
+            context.l10n.telemetryTitle,
+            subtitle: context.l10n.telemetrySubtitle,
           ),
           if (!state.connection.ready) ...[
             EmptyPanel(
               icon: Icons.bluetooth_searching_rounded,
-              title: 'In attesa della tua auto',
-              message: state.connection.message,
+              title: context.l10n.waitingCar,
+              message: context.l10n.message(state.connection.message),
               action: FilledButton.icon(
                 onPressed: onHome,
                 icon: const Icon(Icons.home_rounded),
-                label: const Text('Collega dalla Home'),
+                label: Text(context.l10n.connectFromHome),
               ),
             ),
             const SizedBox(height: 20),
@@ -54,12 +55,15 @@ class TelemetryScreen extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       state.paused
-                          ? 'Viaggio in pausa'
-                          : 'Registrazione in corso',
+                          ? context.l10n.tripPaused
+                          : context.l10n.recordingInProgress,
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
-                  TextButton(onPressed: onHome, child: const Text('Gestisci')),
+                  TextButton(
+                    onPressed: onHome,
+                    child: Text(context.l10n.manage),
+                  ),
                 ],
               ),
             ),
@@ -89,7 +93,7 @@ class TelemetryScreen extends ConsumerWidget {
                     SizedBox(
                       width: (constraints.maxWidth - (count - 1) * 14) / count,
                       child: Metric(
-                        pid.label,
+                        context.l10n.pidLabel(pid.code),
                         number(
                           frame?[pid],
                           pid == Pid.fuelRate || pid == Pid.voltage ? 1 : 0,
@@ -114,8 +118,8 @@ class TelemetryScreen extends ConsumerWidget {
             Panel(
               padding: 8,
               child: ExpansionTile(
-                title: const Text('Parametri disponibili'),
-                subtitle: Text('ECU ${state.connection.ecu}'),
+                title: Text(context.l10n.availableParameters),
+                subtitle: Text(context.l10n.ecuLabel(state.connection.ecu)),
                 childrenPadding: const EdgeInsets.all(12),
                 shape: const Border(),
                 collapsedShape: const Border(),
@@ -126,7 +130,7 @@ class TelemetryScreen extends ConsumerWidget {
                     children: [
                       for (final pid in Pid.values)
                         StatusPill(
-                          '${pid.label} · ${state.connection.supported.contains(pid) ? 'disponibile' : 'non supportato'}',
+                          '${context.l10n.pidLabel(pid.code)} · ${state.connection.supported.contains(pid) ? context.l10n.available : context.l10n.unsupported}',
                           color: state.connection.supported.contains(pid)
                               ? DriveColors.accent
                               : DriveColors.muted,
@@ -146,9 +150,9 @@ class TelemetryScreen extends ConsumerWidget {
             ),
           ],
           const SizedBox(height: 20),
-          const Text(
-            'I parametri non disponibili sono indicati con —.',
-            style: TextStyle(fontSize: 12, color: DriveColors.muted),
+          Text(
+            context.l10n.missingParameters,
+            style: const TextStyle(fontSize: 12, color: DriveColors.muted),
           ),
         ],
       ),
@@ -165,12 +169,12 @@ class _LivePanel extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'TELEMETRIA LIVE',
+                context.l10n.liveTelemetry,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   letterSpacing: 1.5,
                   color: DriveColors.muted,
@@ -233,8 +237,8 @@ class _LivePanel extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           state.frame == null
-              ? 'In attesa dei dati del veicolo'
-              : 'Schermo aggiornato ogni 0,5 s',
+              ? context.l10n.waitingData
+              : context.l10n.screenRefresh,
           style: const TextStyle(color: DriveColors.muted, fontSize: 11),
         ),
       ],

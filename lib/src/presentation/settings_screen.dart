@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../localization/localization.dart';
 import '../features/analytics/trip_analyzer.dart';
 import '../providers.dart';
 import 'components.dart';
@@ -16,7 +17,7 @@ class SettingsScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(error.toString()),
+              Text(context.l10n.error(error)),
               TextButton(
                 onPressed: () async {
                   try {
@@ -27,7 +28,7 @@ class SettingsScreen extends ConsumerWidget {
                     if (context.mounted) await showFailure(context, e);
                   }
                 },
-                child: const Text('Ripristina modello iniziale'),
+                child: Text(context.l10n.restoreModel),
               ),
             ],
           ),
@@ -74,70 +75,62 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionTitle(
-              'Uno score che puoi capire.',
-              subtitle:
-                  'Regole esplicite, pesi modificabili e nessuna scatola nera.',
+            SectionTitle(
+              context.l10n.settingsTitle,
+              subtitle: context.l10n.settingsSubtitle,
             ),
-            const Panel(
+            Panel(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   StatusPill(
-                    'Modello euristico · rules-1.0.0',
+                    context.l10n.heuristicModel,
                     icon: Icons.science_outlined,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'Le impostazioni si applicano ai nuovi viaggi. Ogni viaggio conserva la propria configurazione, così lo score può essere ricalcolato in modo riproducibile.',
-                    style: TextStyle(height: 1.6),
+                    context.l10n.settingsNotice,
+                    style: const TextStyle(height: 1.6),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Text(
-                    'Calculated load è un proxy del carico. L’indice relativo rappresenta la favorevolezza delle zone secondo queste regole; non è una misura di coppia, potenza o rendimento termico.',
-                    style: TextStyle(color: DriveColors.muted, height: 1.6),
+                    context.l10n.loadNotice,
+                    style: const TextStyle(
+                      color: DriveColors.muted,
+                      height: 1.6,
+                    ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
+            _group(context.l10n.componentWeights, context.l10n.weightsNotice, {
+              'zoneWeight': context.l10n.operatingZones,
+              'smoothWeight': context.l10n.smoothness,
+              'warmupWeight': context.l10n.warmup,
+              'economyWeight': context.l10n.relativeEconomy,
+            }),
+            const SizedBox(height: 20),
+            _group(context.l10n.engineZones, context.l10n.engineZonesNotice, {
+              'lowRpm': context.l10n.lowRpm,
+              'highRpm': context.l10n.highRpm,
+              'highLoad': context.l10n.highLoad,
+            }),
+            const SizedBox(height: 20),
             _group(
-              'Il peso di ogni componente',
-              'I pesi vengono rinormalizzati sulle componenti disponibili. Valori iniziali: 0,40 / 0,25 / 0,20 / 0,15.',
+              context.l10n.warmupSmoothness,
+              context.l10n.accelerationNotice,
               {
-                'zoneWeight': 'Zone operative',
-                'smoothWeight': 'Regolarità',
-                'warmupWeight': 'Riscaldamento',
-                'economyWeight': 'Consumo relativo',
+                'warmTemperature': context.l10n.warmTemperature,
+                'coldLoad': context.l10n.coldLoad,
+                'hardAcceleration': context.l10n.hardAccelerationThreshold,
+                'hardBraking': context.l10n.hardBrakingThreshold,
               },
             ),
             const SizedBox(height: 20),
-            _group(
-              'Le zone del motore',
-              'Favorevole: regime tra le soglie e carico tra 20% e soglia alta. Sfavorevole: alto regime, oppure basso regime con carico elevato.',
-              {
-                'lowRpm': 'Regime minimo favorevole · rpm',
-                'highRpm': 'Soglia alto regime · rpm',
-                'highLoad': 'Soglia alto carico · %',
-              },
-            ),
-            const SizedBox(height: 20),
-            _group(
-              'Riscaldamento e regolarità',
-              'Le accelerazioni sono derivate dai timestamp originali della velocità OBD. Gli eventi sono conteggiati all’ingresso nella condizione e rapportati al minuto.',
-              {
-                'warmTemperature': 'Fine riscaldamento · °C',
-                'coldLoad': 'Carico consentito a freddo · %',
-                'hardAcceleration': 'Accelerazione brusca · m/s²',
-                'hardBraking': 'Frenata brusca · m/s²',
-              },
-            ),
-            const SizedBox(height: 20),
-            _group(
-              'Baseline di consumo',
-              'Imposta 0 per escludere la componente economy. Una baseline deve provenire da viaggi comparabili per percorso, temperatura e traffico. La sola quantità di carburante non misura l’efficienza.',
-              {'baselineConsumption': 'Consumo di riferimento · l/100 km'},
-            ),
+            _group(context.l10n.economyBaseline, context.l10n.baselineNotice, {
+              'baselineConsumption': context.l10n.baselineConsumption,
+            }),
             const SizedBox(height: 24),
             Wrap(
               spacing: 12,
@@ -146,7 +139,9 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 FilledButton.icon(
                   onPressed: _saving ? null : _save,
                   icon: const Icon(Icons.check),
-                  label: Text(_saving ? 'Salvataggio…' : 'Salva modello'),
+                  label: Text(
+                    _saving ? context.l10n.saving : context.l10n.saveModel,
+                  ),
                 ),
                 OutlinedButton(
                   onPressed: _saving
@@ -157,14 +152,14 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                             e.value.text = defaults[e.key].toString();
                           }
                         },
-                  child: const Text('Valori iniziali'),
+                  child: Text(context.l10n.defaults),
                 ),
               ],
             ),
             const SizedBox(height: 30),
-            const Text(
-              'Profilo di studio: Ford Fiesta 2021 · OBDLink MX+\nAcquisizione mobile in primo piano. Android: RFCOMM. iOS: ExternalAccessory, previa configurazione e abilitazione del produttore. Desktop: importazione e analisi.\nNessuna scrittura ECU o cancellazione errori è esposta nell’app.',
-              style: TextStyle(
+            Text(
+              context.l10n.studyProfile,
+              style: const TextStyle(
                 color: DriveColors.muted,
                 fontSize: 12,
                 height: 1.8,
@@ -226,11 +221,8 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
       );
       await ref.read(settingsProvider.notifier).save(config);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Modello salvato per i prossimi viaggi.'),
-          ),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(context.l10n.modelSaved)));
       }
     } catch (error) {
       if (mounted) await showFailure(context, error);

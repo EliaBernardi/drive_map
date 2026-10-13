@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../localization/localization.dart';
 import '../domain/telemetry.dart';
 import '../features/analytics/trip_analyzer.dart';
 import 'components.dart';
@@ -29,10 +30,8 @@ class _OperatingMapState extends State<OperatingMap> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionTitle(
-            'La mappa del tuo motore',
-            subtitle: widget.compact
-                ? null
-                : 'Dove ha lavorato il motore, e con quale costo osservato.',
+            context.l10n.engineMap,
+            subtitle: widget.compact ? null : context.l10n.engineMapSubtitle,
           ),
           Wrap(
             spacing: 8,
@@ -42,10 +41,10 @@ class _OperatingMapState extends State<OperatingMap> {
                 ChoiceChip(
                   label: Text(
                     [
-                      'Permanenza',
-                      'Carburante',
-                      'Indice relativo',
-                      'Penalità',
+                      context.l10n.occupancy,
+                      context.l10n.fuel,
+                      context.l10n.relativeIndex,
+                      context.l10n.penalty,
                     ][m.index],
                   ),
                   selected: _metric == m,
@@ -55,21 +54,23 @@ class _OperatingMapState extends State<OperatingMap> {
           ),
           const SizedBox(height: 20),
           if (a.cells.isEmpty)
-            const SizedBox(
+            SizedBox(
               height: 180,
               child: Center(
                 child: Text(
-                  'Servono RPM e calculated load validi\nper costruire la mappa.',
+                  context.l10n.mapRequiresData,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: DriveColors.muted),
+                  style: const TextStyle(color: DriveColors.muted),
                 ),
               ),
             )
           else
             LayoutBuilder(
               builder: (context, constraints) => Semantics(
-                label:
-                    'Mappa operativa: ${a.cells.length} celle, ${durationLabel(a.validMapSeconds)} di dati validi. Tocca una cella per i dettagli.',
+                label: context.l10n.mapSemantics(
+                  '${a.cells.length}',
+                  durationLabel(a.validMapSeconds),
+                ),
                 child: GestureDetector(
                   onTapDown: (details) {
                     final rect = Rect.fromLTWH(
@@ -99,7 +100,13 @@ class _OperatingMapState extends State<OperatingMap> {
                   },
                   child: CustomPaint(
                     size: Size(constraints.maxWidth, 280),
-                    painter: _MapPainter(a.cells, _metric, columns, _selected),
+                    painter: _MapPainter(
+                      a.cells,
+                      _metric,
+                      columns,
+                      _selected,
+                      context.l10n,
+                    ),
                   ),
                 ),
               ),
@@ -126,13 +133,10 @@ class _OperatingMapState extends State<OperatingMap> {
               Expanded(
                 child: Text(
                   switch (_metric) {
-                    MapMetric.occupancy =>
-                      'Da meno a più tempo · celle da 500 rpm × 10%',
-                    MapMetric.fuel =>
-                      'Flusso medio in l/h · solo dati disponibili',
-                    MapMetric.relative =>
-                      'Da 0 a 100 · favorevolezza secondo le regole',
-                    MapMetric.penalty => 'Da 0 a 1 · costo medio delle zone',
+                    MapMetric.occupancy => context.l10n.occupancyLegend,
+                    MapMetric.fuel => context.l10n.fuelLegend,
+                    MapMetric.relative => context.l10n.relativeLegend,
+                    MapMetric.penalty => context.l10n.penaltyLegend,
                   },
                   style: const TextStyle(
                     color: DriveColors.muted,
@@ -145,22 +149,35 @@ class _OperatingMapState extends State<OperatingMap> {
           if (_selected != null) ...[
             const Divider(height: 30),
             Text(
-              '${_selected!.rpmBin * 500}–${(_selected!.rpmBin + 1) * 500} rpm · ${_selected!.loadBin * 10}–${(_selected!.loadBin + 1) * 10}% carico',
+              context.l10n.mapCellRange(
+                '${_selected!.rpmBin * 500}',
+                '${(_selected!.rpmBin + 1) * 500}',
+                '${_selected!.loadBin * 10}',
+                '${(_selected!.loadBin + 1) * 10}',
+              ),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
-              '${durationLabel(_selected!.seconds)} · ${_selected!.samples} frame\n'
-              'Velocità media ${number(_selected!.meanSpeed, 1)} km/h · carburante ${number(_selected!.meanFuel, 2)} l/h\n'
-              'Penalità ${number(_selected!.penalty, 2)} · contributo allo score zone −${a.validMapSeconds > 0 ? (_selected!.penaltySeconds / a.validMapSeconds * 100).toStringAsFixed(1) : '0'} punti',
+              context.l10n.mapCellDetails(
+                durationLabel(_selected!.seconds),
+                '${_selected!.samples}',
+                number(_selected!.meanSpeed, 1),
+                number(_selected!.meanFuel, 2),
+                number(_selected!.penalty, 2),
+                a.validMapSeconds > 0
+                    ? (_selected!.penaltySeconds / a.validMapSeconds * 100)
+                          .toStringAsFixed(1)
+                    : '0',
+              ),
               style: const TextStyle(color: DriveColors.muted, height: 1.7),
             ),
           ],
           if (!widget.compact) ...[
             const SizedBox(height: 18),
-            const Text(
-              'Mappa delle condizioni osservate. L’indice relativo descrive le regole del modello: non misura il rendimento termico o la BSFC.',
-              style: TextStyle(
+            Text(
+              context.l10n.mapNotice,
+              style: const TextStyle(
                 color: DriveColors.muted,
                 fontSize: 11,
                 height: 1.6,
@@ -174,7 +191,14 @@ class _OperatingMapState extends State<OperatingMap> {
 }
 
 class _MapPainter extends CustomPainter {
-  _MapPainter(this.cells, this.metric, this.columns, this.selected);
+  _MapPainter(
+    this.cells,
+    this.metric,
+    this.columns,
+    this.selected,
+    this.strings,
+  );
+  final AppLocalizations strings;
   final List<OperatingCell> cells;
   final MapMetric metric;
   final int columns;
@@ -243,7 +267,7 @@ class _MapPainter extends CustomPainter {
         size: 10,
       );
     }
-    paintText(canvas, 'Carico %', Offset(rect.left, 0), size: 10);
+    paintText(canvas, strings.loadAxis, Offset(rect.left, 0), size: 10);
     for (var i = 0; i <= 4; i++) {
       final rpm = (columns * 500 * i / 4).round();
       paintText(
@@ -258,7 +282,7 @@ class _MapPainter extends CustomPainter {
     }
     paintText(
       canvas,
-      'Regime motore · rpm',
+      strings.rpmAxis,
       Offset(rect.left, rect.bottom + 28),
       size: 10,
     );
@@ -268,7 +292,8 @@ class _MapPainter extends CustomPainter {
   bool shouldRepaint(_MapPainter oldDelegate) =>
       oldDelegate.cells != cells ||
       oldDelegate.metric != metric ||
-      oldDelegate.selected != selected;
+      oldDelegate.selected != selected ||
+      oldDelegate.strings.localeName != strings.localeName;
 }
 
 class TelemetryTimeline extends StatefulWidget {
@@ -291,9 +316,9 @@ class _TelemetryTimelineState extends State<TelemetryTimeline> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionTitle(
-            'Il viaggio, istante per istante',
-            subtitle: 'Tocca il grafico per leggere un campione. I punti arancioni indicano eventi di guida.',
+          SectionTitle(
+            context.l10n.timelineTitle,
+            subtitle: context.l10n.timelineSubtitle,
           ),
           Wrap(
             spacing: 6,
@@ -308,7 +333,7 @@ class _TelemetryTimelineState extends State<TelemetryTimeline> {
                 Pid.fuelRate,
               ])
                 ChoiceChip(
-                  label: Text(p.label),
+                  label: Text(context.l10n.pidLabel(p.code)),
                   selected: _pid == p,
                   onSelected: (_) => setState(() => _pid = p),
                 ),
@@ -317,7 +342,7 @@ class _TelemetryTimelineState extends State<TelemetryTimeline> {
           const SizedBox(height: 16),
           Text(
             f == null
-                ? '${_pid.label} · ${_pid.unit}'
+                ? '${context.l10n.pidLabel(_pid.code)} · ${_pid.unit}'
                 : '${number(f[_pid], 1)} ${_pid.unit} · ${f.at.toLocal().toIso8601String().substring(11, 19)}',
             style: const TextStyle(color: DriveColors.accent),
           ),
@@ -328,10 +353,13 @@ class _TelemetryTimelineState extends State<TelemetryTimeline> {
               onHorizontalDragUpdate: (details) =>
                   _select(details.localPosition.dx, constraints.maxWidth),
               child: Semantics(
-                label: 'Timeline ${_pid.label}. ${a.frames.length} campioni.',
+                label: context.l10n.timelineSemantics(
+                  context.l10n.pidLabel(_pid.code),
+                  '${a.frames.length}',
+                ),
                 child: CustomPaint(
                   size: Size(constraints.maxWidth, 220),
-                  painter: _TimelinePainter(a, _pid, _selected),
+                  painter: _TimelinePainter(a, _pid, _selected, context.l10n),
                 ),
               ),
             ),
@@ -364,7 +392,8 @@ class _TelemetryTimelineState extends State<TelemetryTimeline> {
 }
 
 class _TimelinePainter extends CustomPainter {
-  _TimelinePainter(this.analysis, this.pid, this.selected);
+  _TimelinePainter(this.analysis, this.pid, this.selected, this.strings);
+  final AppLocalizations strings;
   final TripAnalysis analysis;
   final Pid pid;
   final int? selected;
@@ -372,16 +401,12 @@ class _TimelinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final frames = analysis.frames;
     if (frames.length < 2) {
-      paintText(canvas, 'Campioni insufficienti', const Offset(20, 100));
+      paintText(canvas, strings.insufficientSamples, const Offset(20, 100));
       return;
     }
     final values = frames.map((f) => f[pid]).whereType<double>();
     if (values.isEmpty) {
-      paintText(
-        canvas,
-        'Parametro non disponibile in questo viaggio',
-        const Offset(10, 100),
-      );
+      paintText(canvas, strings.parameterUnavailable, const Offset(10, 100));
       return;
     }
     final minimum = math.min(0.0, values.reduce(math.min));
@@ -481,7 +506,8 @@ class _TimelinePainter extends CustomPainter {
   bool shouldRepaint(_TimelinePainter oldDelegate) =>
       oldDelegate.analysis != analysis ||
       oldDelegate.pid != pid ||
-      oldDelegate.selected != selected;
+      oldDelegate.selected != selected ||
+      oldDelegate.strings.localeName != strings.localeName;
 }
 
 void paintText(

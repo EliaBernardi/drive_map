@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../localization/localization.dart';
 import '../features/obd/obd_session.dart';
 import '../features/obd/obd_transport.dart';
 import '../providers.dart';
@@ -31,11 +32,11 @@ class HomeScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionTitle(
-            'Si parte?',
-            subtitle: 'La tua auto, un viaggio alla volta.',
+          SectionTitle(
+            context.l10n.homeTitle,
+            subtitle: context.l10n.homeSubtitle,
           ),
-          const Panel(
+          Panel(
             padding: 20,
             color: DriveColors.mint,
             child: Row(
@@ -45,16 +46,16 @@ class HomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'NEL TUO GARAGE',
-                        style: TextStyle(
+                        context.l10n.garage,
+                        style: const TextStyle(
                           fontSize: 10,
                           letterSpacing: 1.2,
                           fontWeight: FontWeight.w700,
                           color: DriveColors.accent,
                         ),
                       ),
-                      SizedBox(height: 10),
-                      Text(
+                      const SizedBox(height: 10),
+                      const Text(
                         'Ford Fiesta',
                         style: TextStyle(
                           fontSize: 26,
@@ -63,10 +64,10 @@ class HomeScreen extends ConsumerWidget {
                           letterSpacing: -.6,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        '2021 · 1.0 EcoBoost\n125 CV · mild hybrid',
-                        style: TextStyle(
+                        context.l10n.vehicleSpecs,
+                        style: const TextStyle(
                           fontSize: 12,
                           height: 1.6,
                           color: DriveColors.muted,
@@ -75,8 +76,8 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: 8),
-                DriveMapLogo(size: 112),
+                const SizedBox(width: 8),
+                const DriveMapLogo(size: 112),
               ],
             ),
           ),
@@ -88,11 +89,11 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   const Icon(Icons.info_outline, color: DriveColors.amber),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(state.error!)),
+                  Expanded(child: Text(context.l10n.message(state.error!))),
                   IconButton(
                     onPressed: controller.dismissError,
                     icon: const Icon(Icons.close),
-                    tooltip: 'Chiudi messaggio',
+                    tooltip: context.l10n.dismissMessage,
                   ),
                 ],
               ),
@@ -100,8 +101,8 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 20),
           ],
           if (state.demo && state.connection.ready) ...[
-            const StatusPill(
-              'Demo attiva · dati simulati',
+            StatusPill(
+              context.l10n.demoActive,
               color: DriveColors.amber,
               icon: Icons.science_outlined,
             ),
@@ -138,9 +139,9 @@ class HomeScreen extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 20),
-          const Text(
-            'La raccolta si mette in pausa quando l’app passa in background. Lo schermo resta acceso mentre OBD è connesso.',
-            style: TextStyle(
+          Text(
+            context.l10n.foregroundNotice,
+            style: const TextStyle(
               fontSize: 12,
               color: DriveColors.muted,
               height: 1.5,
@@ -172,15 +173,15 @@ class HomeScreen extends ConsumerWidget {
               child: Text(
                 state.hasTrip
                     ? state.paused
-                          ? 'Viaggio in pausa'
-                          : 'Registrazione attiva'
-                    : 'Il tuo prossimo viaggio',
+                          ? context.l10n.tripPaused
+                          : context.l10n.recordingActive
+                    : context.l10n.nextTrip,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
             if (state.hasTrip)
               Text(
-                '${state.frameCount} frame',
+                context.l10n.frameCount('${state.frameCount}'),
                 style: const TextStyle(color: DriveColors.muted),
               ),
           ],
@@ -188,8 +189,8 @@ class HomeScreen extends ConsumerWidget {
         const SizedBox(height: 12),
         Text(
           state.hasTrip
-              ? 'I dati vengono salvati sul telefono. Lascia DriveMap aperta durante il viaggio.'
-              : 'Avvia prima di partire. Al termine potrai ritrovare ed esportare i tuoi dati in Viaggi.',
+              ? context.l10n.recordingNotice
+              : context.l10n.startNotice,
           style: const TextStyle(color: DriveColors.muted, height: 1.5),
         ),
         const SizedBox(height: 20),
@@ -203,7 +204,7 @@ class HomeScreen extends ConsumerWidget {
                     ? controller.start
                     : null,
                 icon: const Icon(Icons.play_arrow),
-                label: const Text('Inizia viaggio'),
+                label: Text(context.l10n.startTrip),
               ),
             if (state.hasTrip) ...[
               OutlinedButton.icon(
@@ -214,19 +215,21 @@ class HomeScreen extends ConsumerWidget {
                     ? controller.resume
                     : controller.pause,
                 icon: Icon(state.paused ? Icons.play_arrow : Icons.pause),
-                label: Text(state.paused ? 'Riprendi' : 'Pausa'),
+                label: Text(
+                  state.paused ? context.l10n.resume : context.l10n.pause,
+                ),
               ),
               FilledButton.icon(
                 onPressed: state.busy ? null : controller.stop,
                 icon: const Icon(Icons.stop_rounded),
-                label: const Text('Termina e salva'),
+                label: Text(context.l10n.finishSave),
               ),
             ],
             if (state.savedTripId != null && !state.hasTrip)
               OutlinedButton.icon(
                 onPressed: onTrips,
                 icon: const Icon(Icons.check_circle_outline),
-                label: const Text('Viaggio salvato · apri archivio'),
+                label: Text(context.l10n.savedOpenArchive),
               ),
           ],
         ),
@@ -251,7 +254,7 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Connessione OBD',
+                  context.l10n.obdConnection,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
@@ -265,12 +268,16 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            state.connection.ready ? state.deviceName : 'OBDLink MX+',
+            state.connection.ready
+                ? state.demo
+                      ? context.l10n.simulator
+                      : state.deviceName
+                : 'OBDLink MX+',
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 6),
           Text(
-            state.connection.message,
+            context.l10n.message(state.connection.message),
             style: const TextStyle(color: DriveColors.muted, height: 1.5),
           ),
           const SizedBox(height: 20),
@@ -281,15 +288,15 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 _ConnectionMetric(
                   '${state.connection.responsesPerSecond.toStringAsFixed(1)} /s',
-                  'Letture valide',
+                  context.l10n.validReadings,
                 ),
                 _ConnectionMetric(
                   '${state.connection.latencyMs} ms',
-                  'Ultima risposta',
+                  context.l10n.lastResponse,
                 ),
                 _ConnectionMetric(
                   '${state.connection.reconnects}',
-                  'Riconnessioni',
+                  context.l10n.reconnections,
                 ),
               ],
             ),
@@ -301,19 +308,19 @@ class HomeScreen extends ConsumerWidget {
                 FilledButton.tonalIcon(
                   onPressed: onTelemetry,
                   icon: const Icon(Icons.speed_rounded),
-                  label: const Text('Apri telemetria'),
+                  label: Text(context.l10n.openTelemetry),
                 ),
                 OutlinedButton.icon(
                   onPressed: state.busy ? null : c.disconnect,
                   icon: const Icon(Icons.link_off),
-                  label: const Text('Disconnetti'),
+                  label: Text(context.l10n.disconnect),
                 ),
               ],
             ),
           ] else ...[
-            const Text(
-              'Accendi il quadro, chiudi le altre app OBD e seleziona il tuo adattatore.',
-              style: TextStyle(
+            Text(
+              context.l10n.connectInstructions,
+              style: const TextStyle(
                 color: DriveColors.muted,
                 height: 1.9,
                 fontSize: 13,
@@ -332,20 +339,20 @@ class HomeScreen extends ConsumerWidget {
                     icon: const Icon(Icons.refresh),
                     label: Text(
                       state.loadingDevices
-                          ? 'Ricerca…'
-                          : 'Dispositivi associati',
+                          ? context.l10n.searching
+                          : context.l10n.pairedDevices,
                     ),
                   ),
                   OutlinedButton(
                     onPressed: connecting || state.busy ? null : c.pairing,
-                    child: const Text('Associa dispositivo'),
+                    child: Text(context.l10n.pairDevice),
                   ),
                 ],
               )
             else
-              const Text(
-                'Su desktop: importa i viaggi o esplora la demo.',
-                style: TextStyle(color: DriveColors.amber),
+              Text(
+                context.l10n.desktopNotice,
+                style: const TextStyle(color: DriveColors.amber),
               ),
             for (final device in state.devices)
               ListTile(
@@ -368,12 +375,12 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                 icon: const Icon(Icons.article_outlined, size: 18),
-                label: const Text('Diagnostica e log OBD'),
+                label: Text(context.l10n.diagnosticsLogs),
               ),
             if (connecting)
               TextButton(
                 onPressed: c.disconnect,
-                child: const Text('Annulla connessione'),
+                child: Text(context.l10n.cancelConnection),
               ),
             const SizedBox(height: 12),
             TextButton.icon(
@@ -382,7 +389,7 @@ class HomeScreen extends ConsumerWidget {
                   ? null
                   : () => c.connect(demo: true),
               icon: const Icon(Icons.science_outlined, size: 18),
-              label: const Text('Esplora con la demo'),
+              label: Text(context.l10n.exploreDemo),
             ),
           ],
         ],

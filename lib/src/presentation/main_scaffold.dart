@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../localization/localization.dart';
 import 'drive_map_logo.dart';
 
 enum MainDestination {
-  home('Home', Icons.home_outlined, Icons.home_rounded),
-  telemetry('Telemetria', Icons.speed_outlined, Icons.speed_rounded),
-  trips('Viaggi', Icons.route_outlined, Icons.route_rounded),
-  profile('Profilo', Icons.person_outline_rounded, Icons.person_rounded);
+  home(Icons.home_outlined, Icons.home_rounded),
+  telemetry(Icons.speed_outlined, Icons.speed_rounded),
+  trips(Icons.route_outlined, Icons.route_rounded),
+  profile(Icons.person_outline_rounded, Icons.person_rounded);
 
-  const MainDestination(this.label, this.icon, this.selectedIcon);
-  final String label;
+  const MainDestination(this.icon, this.selectedIcon);
   final IconData icon, selectedIcon;
+  String label(AppLocalizations strings) => switch (this) {
+    home => strings.home,
+    telemetry => strings.telemetry,
+    trips => strings.trips,
+    profile => strings.profile,
+  };
 }
 
 /// Common, compact chrome. Page state and Bluetooth ownership live in the shell.
@@ -75,7 +81,7 @@ class MainScaffold extends StatelessWidget {
                       Tooltip(
                         message: connectionLabel,
                         child: Semantics(
-                          label: 'Collegamento OBD: $connectionLabel',
+                          label: context.l10n.obdStatus(connectionLabel),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -172,7 +178,7 @@ class _NavigationItem extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
     button: true,
     selected: selected,
-    label: destination.label,
+    label: destination.label(context.l10n),
     onTap: onTap,
     excludeSemantics: true,
     child: Padding(
@@ -195,7 +201,7 @@ class _NavigationItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  destination.label,
+                  destination.label(context.l10n),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

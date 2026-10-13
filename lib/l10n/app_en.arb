@@ -1,0 +1,837 @@
+{
+  "@@locale": "en",
+  "home": "Home",
+  "telemetry": "Telemetry",
+  "trips": "Trips",
+  "profile": "Profile",
+  "demo": "Demo",
+  "obdConnected": "OBD connected",
+  "offline": "Offline",
+  "homeTitle": "Ready to go?",
+  "homeSubtitle": "Your car, one trip at a time.",
+  "garage": "IN YOUR GARAGE",
+  "vehicleSpecs": "2021 · 1.0 EcoBoost\n125 PS · mild hybrid",
+  "dismissMessage": "Dismiss message",
+  "demoActive": "Demo active · simulated data",
+  "foregroundNotice": "Data collection pauses when the app goes into the background. The screen stays awake while OBD is connected.",
+  "tripPaused": "Trip paused",
+  "recordingActive": "Recording active",
+  "nextTrip": "Your next trip",
+  "recordingNotice": "Data is saved on your phone. Keep DriveMap open during the trip.",
+  "startNotice": "Start before you set off. Afterwards, find and export your data in Trips.",
+  "startTrip": "Start trip",
+  "resume": "Resume",
+  "pause": "Pause",
+  "finishSave": "Finish and save",
+  "savedOpenArchive": "Trip saved · open archive",
+  "obdConnection": "OBD connection",
+  "validReadings": "Valid readings",
+  "lastResponse": "Last response",
+  "reconnections": "Reconnections",
+  "openTelemetry": "Open telemetry",
+  "disconnect": "Disconnect",
+  "connectInstructions": "Turn on the ignition, close other OBD apps and select your adapter.",
+  "searching": "Searching…",
+  "pairedDevices": "Paired devices",
+  "pairDevice": "Pair device",
+  "desktopNotice": "On desktop: import trips or explore the demo.",
+  "diagnosticsLogs": "OBD diagnostics and logs",
+  "cancelConnection": "Cancel connection",
+  "exploreDemo": "Explore the demo",
+  "telemetryTitle": "Your engine, live.",
+  "telemetrySubtitle": "A look at the ECU readings.",
+  "waitingCar": "Waiting for your car",
+  "connectFromHome": "Connect from Home",
+  "recordingInProgress": "Recording in progress",
+  "manage": "Manage",
+  "availableParameters": "Available parameters",
+  "available": "available",
+  "unsupported": "not supported",
+  "missingParameters": "Unavailable parameters are shown as —.",
+  "liveTelemetry": "LIVE TELEMETRY",
+  "waitingData": "Waiting for vehicle data",
+  "screenRefresh": "Screen updated every 0.5 s",
+  "profileTitle": "Your vehicle.",
+  "profileSubtitle": "Your Fiesta and its onboard tools.",
+  "engine": "Engine",
+  "engineSpecs": "125 PS · mild hybrid",
+  "fuelType": "Fuel type",
+  "petrol": "Petrol",
+  "adapter": "Adapter",
+  "analysisSettings": "Analysis settings",
+  "analysisSettingsSubtitle": "Customize driving thresholds and weights.",
+  "localTripsNotice": "Trips stay on your phone. Export them from Trips to view them on your computer.",
+  "language": "Language",
+  "languageItalian": "Italiano",
+  "languageEnglish": "English",
+  "languageHint": "Choose the app language. Your preference is saved on this phone.",
+  "languageSaveFailed": "Could not save the language. Please try again.",
+  "languageLoadFailed": "Could not load the saved language.",
+  "restoreModel": "Restore default model",
+  "settingsTitle": "A score you can understand.",
+  "settingsSubtitle": "Clear rules and adjustable weights, with a transparent model.",
+  "heuristicModel": "Heuristic model · rules-1.0.0",
+  "settingsNotice": "Settings apply to new trips. Each trip keeps its own configuration so its score can be recalculated reproducibly.",
+  "loadNotice": "Calculated load is a load proxy. The relative index represents how favorable the zones are under these rules; it does not measure torque, power or thermal efficiency.",
+  "componentWeights": "Each component’s weight",
+  "weightsNotice": "Weights are normalized across available components. Defaults: 0.40 / 0.25 / 0.20 / 0.15.",
+  "operatingZones": "Operating zones",
+  "smoothness": "Smoothness",
+  "warmup": "Warm-up",
+  "relativeEconomy": "Relative consumption",
+  "engineZones": "Engine zones",
+  "engineZonesNotice": "Favorable: RPM between the thresholds and load between 20% and the upper threshold. Unfavorable: high RPM, or low RPM with high load.",
+  "lowRpm": "Minimum favorable speed · rpm",
+  "highRpm": "High engine speed threshold · rpm",
+  "highLoad": "High load threshold · %",
+  "warmupSmoothness": "Warm-up and smoothness",
+  "accelerationNotice": "Acceleration is derived from the original OBD speed timestamps. Events are counted when the condition is entered and expressed per minute.",
+  "warmTemperature": "End of warm-up · °C",
+  "coldLoad": "Allowed load when cold · %",
+  "hardAccelerationThreshold": "Hard acceleration · m/s²",
+  "hardAccelerationEvent": "Hard acceleration",
+  "hardBrakingEvent": "Hard braking",
+  "hardBrakingThreshold": "Hard braking · m/s²",
+  "economyBaseline": "Consumption baseline",
+  "baselineNotice": "Set to 0 to exclude the economy component. A baseline must come from trips with comparable routes, temperatures and traffic. Fuel quantity alone does not measure efficiency.",
+  "baselineConsumption": "Reference consumption · l/100 km",
+  "saving": "Saving…",
+  "saveModel": "Save model",
+  "defaults": "Defaults",
+  "studyProfile": "Study vehicle: Ford Fiesta 2021 · OBDLink MX+\nMobile acquisition in the foreground. Android: RFCOMM. iOS: ExternalAccessory, subject to manufacturer configuration and approval. Desktop: import and analysis.\nThe app offers no ECU writing or fault clearing.",
+  "modelSaved": "Model saved for future trips.",
+  "tripsTitle": "Every trip has a story.",
+  "tripsSubtitle": "Find your trips, explore the engine and compare results.",
+  "importing": "Importing…",
+  "importData": "Import CSV / DriveMap",
+  "refreshTrips": "Refresh trips",
+  "archiveUnavailable": "Archive unavailable",
+  "retry": "Try again",
+  "firstTrip": "Your first trip awaits",
+  "firstTripNotice": "Start a trip from Home or import a CSV. You can also try the demo: simulated data is clearly marked in the archive.",
+  "importedCsv": "Imported CSV",
+  "realObd": "Real OBD",
+  "interruptedRecovered": "Interrupted · recovered",
+  "openSession": "Open session",
+  "analyzeTrip": "Analyze trip",
+  "deleteTrip": "Delete trip",
+  "deleteTripQuestion": "Delete this trip?",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "fileSizeLimit": "File limit: 30 MB. Split larger trips.",
+  "unknownBundle": "Unrecognized DriveMap format.",
+  "invalidFrameCount": "Invalid frame count (2–200,000).",
+  "tooManyRaw": "Too many raw samples.",
+  "tripAnalysis": "Trip analysis",
+  "exportTrip": "Export trip",
+  "exportBundle": "DriveMap · data, raw samples and model",
+  "exportTelemetry": "CSV · telemetry and PID timestamps",
+  "exportRaw": "CSV · raw OBD responses",
+  "demoTripNotice": "Demo trip · simulated telemetry",
+  "csvTripNotice": "CSV · source and units defined during import",
+  "tripEvents": "Trip events",
+  "noEvents": "No events detected in the available samples.",
+  "firstHundredEvents": "Showing the first 100 events. All data is available for export.",
+  "exportCompleted": "Export complete.",
+  "observedTime": "Observed time",
+  "integratedDistance": "Integrated distance",
+  "integratedFuel": "Integrated fuel",
+  "estimatedConsumption": "Estimated consumption",
+  "yourScore": "YOUR SCORE",
+  "explainable": "Explainable · v1",
+  "notCalculated": "Not calculated",
+  "compareTrips": "Two trips, compared",
+  "comparisonNotice": "Compare similar routes and conditions. Traffic, temperature and gradients can change the results.",
+  "differentModels": "Different models: scores cannot be compared directly",
+  "differentSources": "Different data sources",
+  "metric": "Metric",
+  "tripA": "Trip A",
+  "tripB": "Trip B",
+  "scoreMetric": "Score / 100",
+  "distanceMetric": "Distance km",
+  "consumptionMetric": "Consumption l/100 km",
+  "favorableZones": "Favorable zones",
+  "drivingEvents": "Driving events",
+  "mappedTime": "Mapped time",
+  "mapCsvColumns": "Map CSV columns",
+  "time": "Time",
+  "elapsedSeconds": "Time in seconds from start",
+  "isoTimeNotice": "Turn off for ISO 8601 timestamps with a time zone.",
+  "tripStartIso": "Trip start · ISO 8601 with time zone",
+  "invalidOrigin": "Enter an ISO trip start with a time zone, e.g. 2026-10-01T10:00:00+02:00.",
+  "importTrip": "Import trip",
+  "notPresent": "Not present",
+  "engineMap": "Your engine map",
+  "engineMapSubtitle": "Where the engine worked and its observed cost.",
+  "occupancy": "Time spent",
+  "fuel": "Fuel",
+  "relativeIndex": "Relative index",
+  "penalty": "Penalty",
+  "mapRequiresData": "Valid RPM and calculated load readings\nare needed to build the map.",
+  "occupancyLegend": "Less to more time · 500 rpm × 10% cells",
+  "fuelLegend": "Mean flow in l/h · available data only",
+  "relativeLegend": "0 to 100 · favorability under the rules",
+  "penaltyLegend": "0 to 1 · mean zone cost",
+  "mapNotice": "Map of observed conditions. The relative index describes the model rules: it does not measure thermal efficiency or BSFC.",
+  "loadAxis": "Load %",
+  "rpmAxis": "Engine speed · rpm",
+  "timelineTitle": "Your trip, moment by moment",
+  "timelineSubtitle": "Tap the chart to read a sample. Orange dots indicate driving events.",
+  "insufficientSamples": "Insufficient samples",
+  "parameterUnavailable": "Parameter unavailable for this trip",
+  "connectObdLink": "Connect your OBDLink",
+  "scanInstructions": "Turn on the ignition and put the adapter into pairing mode. Discovery uses Bluetooth Classic.",
+  "addObd": "Add OBD",
+  "androidScanOnly": "Bluetooth Classic discovery is available on Android.",
+  "bluetoothDevices": "Bluetooth devices",
+  "stopSearch": "Stop search",
+  "searchAgain": "Search again",
+  "onlyObdLink": "Show OBDLink only",
+  "scanningNearby": "Searching… Move your phone closer and enable pairing on the MX+.",
+  "noVisibleDevices": "No devices found. Try again or turn off the OBDLink filter.",
+  "unnamedDevice": "Unnamed device",
+  "alreadyPaired": "Already paired",
+  "notPaired": "Not paired",
+  "standardPids": "Available standard PIDs",
+  "repeatAti": "Repeat ATI",
+  "bluetoothSettings": "Bluetooth settings",
+  "exportLogs": "Export logs to a .txt file",
+  "commandsResponses": "Commands and responses",
+  "noCommands": "No commands sent.",
+  "pidTestTitle": "Parameter test · 30 seconds",
+  "pidTestNotice": "Reads the main PIDs, fuel level and odometer in sequence. Fuel is expressed as a percentage, not in liters. Start the test while parked; do not use your phone while driving.",
+  "testConsumption": "Estimated average consumption during the test",
+  "testConsumptionUnavailable": "— L/100 km · distance too short or readings unavailable",
+  "stopTest": "Stop test",
+  "startPidTest": "Start 30 s PID test",
+  "noTestablePids": "No main PIDs available for testing.",
+  "diagnosticLog": "DriveMap · diagnostic log",
+  "noLogEvents": "No events recorded in this session.",
+  "serialEvents": "Events and serial traffic:",
+  "none": "none",
+  "notDetected": "not detected",
+  "protocolNotDetected": "not detected",
+  "noPidsDetected": "none detected",
+  "pidLoad": "Engine load",
+  "pidCoolant": "Coolant",
+  "pidManifold": "Manifold pressure",
+  "pidRpm": "Engine speed",
+  "pidSpeed": "Speed",
+  "pidThrottle": "Throttle",
+  "pidVoltage": "ECU voltage",
+  "pidFuelRate": "Fuel flow",
+  "pidFuelLevel": "Fuel level",
+  "pidTorque": "Actual engine torque",
+  "pidReferenceTorque": "Reference engine torque",
+  "pidOdometer": "Total odometer",
+  "connectCar": "Connect your car",
+  "bluetoothConnecting": "Connecting Bluetooth…",
+  "telemetryActive": "Telemetry active",
+  "connectionFailedNotice": "Connection failed. Check the ignition and Bluetooth, close the OBDLink app, then try again.",
+  "initializingAdapter": "Initializing OBDLink…",
+  "discoveringPids": "Checking ECU and supported PIDs…",
+  "disconnected": "Disconnected",
+  "pidsNotChecked": "PIDs not checked yet",
+  "bluetoothSearching": "Searching for Bluetooth devices…",
+  "searchFinished": "Search finished",
+  "connectionFailed": "Connection failed",
+  "linkNeedsRestore": "Connection needs restoring",
+  "noMainPids": "No supported main PIDs to read.",
+  "stopRequested": "Stop requested…",
+  "adapterIdentifiedSearching": "Adapter identified · checking PIDs",
+  "adapterConfiguring": "Configuring the adapter and querying the ECU…",
+  "standardPidsQuery": "Querying standard PIDs (01–20)…",
+  "ecuNoData": "The ECU did not respond to 0100 (NO DATA).",
+  "invalid0100": "No valid OBD response to 0100.",
+  "adapterNoEcu": "Adapter connected · ECU not detected",
+  "noStandardPids": "No supported standard PIDs detected.",
+  "adapterIdentified": "Adapter identified",
+  "adapterIncompletePids": "Adapter connected · PID check incomplete",
+  "disconnecting": "Disconnecting…",
+  "simulator": "OBD simulator",
+  "demoTrip": "Demo trip",
+  "linkLostTripPaused": "OBD connection lost after reconnection attempts. The trip is paused: reconnect the adapter and tap Resume.",
+  "zoneReason": "Time weighted across RPM–load zones: cost 0, 0.5 or 1.",
+  "smoothReason": "−5 points per event per minute; acceleration derived from OBD speed.",
+  "economyExcluded": "Excluded: configure a baseline from comparable trips for this vehicle.",
+  "scoreRequiresData": "At least 5 seconds of valid data are needed to calculate score components.",
+  "scoreNoMap": "Map unavailable: RPM or load missing. ",
+  "scoreWeightsNormalized": "Weights of available components are normalized. ",
+  "saveSettingsFailed": "Could not save settings.",
+  "finiteParameters": "Parameters must be finite numbers.",
+  "invalidSettings": "Check weights, thresholds and baseline: the values are invalid.",
+  "csvRequiresRows": "The CSV must contain a header and at least one row.",
+  "csvRowLimit": "Import limit: 200,000 rows per trip.",
+  "selectTimeColumn": "Select the time column.",
+  "mapObdParameter": "Map at least one OBD parameter.",
+  "distinctColumns": "Each parameter must use a different column.",
+  "fuelRateUnits": "Fuel flow must be in l/h. g/s and gal/h require an explicit conversion.",
+  "useCalculatedLoad": "Use calculated load (PID 04), not absolute load (PID 43).",
+  "twoValidRows": "At least two rows with valid times and data are required.",
+  "maxTripDuration": "Maximum duration: 24 hours.",
+  "notElmAdapter": "The adapter does not respond as ELM/STN.",
+  "ecuNotResponding": "The ECU is not responding. Turn on the ignition.",
+  "noExpectedPids": "None of the expected PIDs is available.",
+  "ecuStoppedData": "The ECU is no longer providing data.",
+  "invalidAti": "Invalid ATI response.",
+  "bluetoothInterrupted": "Bluetooth connection interrupted.",
+  "longObdResponse": "OBD response too long.",
+  "reconnectChannel": "The OBD channel needs reconnecting.",
+  "sessionClosed": "Session closed.",
+  "incompleteBitmap": "Incomplete PID bitmap",
+  "mobileAcquisitionOnly": "On desktop you can import and analyze trips. Bluetooth acquisition is available on mobile.",
+  "bondTimeout": "Pairing timed out. Try again with OBDLink in pairing mode.",
+  "bondCanceled": "Pairing failed or was canceled.",
+  "scanPermissionRevoked": "Bluetooth permission revoked during discovery.",
+  "permissionsBusy": "A permission request is already in progress.",
+  "missingScanPermission": "Bluetooth scan permission is missing.",
+  "missingDevice": "No device specified.",
+  "bondInterrupted": "Pairing interrupted in the app.",
+  "bluetoothDisconnected": "Bluetooth disconnected.",
+  "bluetoothUnavailable": "Bluetooth unavailable.",
+  "enableBluetoothSettings": "Enable Bluetooth in settings.",
+  "nearbyPermission": "Allow access to nearby devices in the app settings.",
+  "bluetoothPermissionDenied": "Bluetooth permission denied. Allow Nearby devices (and Location on Android 11 or earlier) in the app settings.",
+  "scanFailed": "Could not start Bluetooth discovery.",
+  "bondBusy": "Pairing is already in progress.",
+  "enableBluetooth": "Enable Bluetooth.",
+  "bondStartFailed": "Could not start pairing.",
+  "bondFailed": "Pairing failed.",
+  "deviceNotPaired": "Device not paired. Pair it in Bluetooth settings.",
+  "connectionCanceled": "Connection canceled.",
+  "obdInterrupted": "OBD connection interrupted.",
+  "activityClosed": "Activity closed.",
+  "bluetoothDevice": "Bluetooth device",
+  "invalidNumber": "Enter a valid number.",
+  "obdStatus": "OBD connection: {status}",
+  "@obdStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "frameCount": "{count} frames",
+  "@frameCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "compareCount": "Compare ({count}/2)",
+  "@compareCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTripNotice": "“{name}” and its data will be deleted from the device.",
+  "@deleteTripNotice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "importResult": "Imported {frames} frames. Discarded rows: {discarded}; invalid values: {invalid}.",
+  "@importResult": {
+    "placeholders": {
+      "frames": {
+        "type": "String"
+      },
+      "discarded": {
+        "type": "String"
+      },
+      "invalid": {
+        "type": "String"
+      }
+    }
+  },
+  "eventCount": "{count} events · thresholds from the model saved with this trip",
+  "@eventCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "coverageNotice": "Coverage: speed {speed}% · fuel flow {fuel}%. Distance and fuel refer to valid intervals.",
+  "@coverageNotice": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      },
+      "fuel": {
+        "type": "String"
+      }
+    }
+  },
+  "excludedWeight": "Coverage {coverage}% · weight excluded",
+  "@excludedWeight": {
+    "placeholders": {
+      "coverage": {
+        "type": "String"
+      }
+    }
+  },
+  "effectiveWeight": "Coverage {coverage}% · effective weight {weight}% · contribution {contribution} points",
+  "@effectiveWeight": {
+    "placeholders": {
+      "coverage": {
+        "type": "String"
+      },
+      "weight": {
+        "type": "String"
+      },
+      "contribution": {
+        "type": "String"
+      }
+    }
+  },
+  "csvPreview": "{rows} rows. Confirm units: speed km/h (or specified mph), RPM, load/throttle %, temperature °C (or specified °F), fuel flow l/h.",
+  "@csvPreview": {
+    "placeholders": {
+      "rows": {
+        "type": "String"
+      }
+    }
+  },
+  "mapSemantics": "Operating map: {cells} cells, {duration} of valid data. Tap a cell for details.",
+  "@mapSemantics": {
+    "placeholders": {
+      "cells": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "mapCellRange": "{rpmMin}–{rpmMax} rpm · {loadMin}–{loadMax}% load",
+  "@mapCellRange": {
+    "placeholders": {
+      "rpmMin": {
+        "type": "String"
+      },
+      "rpmMax": {
+        "type": "String"
+      },
+      "loadMin": {
+        "type": "String"
+      },
+      "loadMax": {
+        "type": "String"
+      }
+    }
+  },
+  "mapCellDetails": "{duration} · {frames} frames\nMean speed {speed} km/h · fuel {fuel} l/h\nPenalty {penalty} · zone score contribution −{points} points",
+  "@mapCellDetails": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "frames": {
+        "type": "String"
+      },
+      "speed": {
+        "type": "String"
+      },
+      "fuel": {
+        "type": "String"
+      },
+      "penalty": {
+        "type": "String"
+      },
+      "points": {
+        "type": "String"
+      }
+    }
+  },
+  "timelineSemantics": "{parameter} timeline. {samples} samples.",
+  "@timelineSemantics": {
+    "placeholders": {
+      "parameter": {
+        "type": "String"
+      },
+      "samples": {
+        "type": "String"
+      }
+    }
+  },
+  "statusLabel": "Status: {status}",
+  "@statusLabel": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "selectedDevice": "Selected device: {name}",
+  "@selectedDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ecuLabel": "ECU {ecu}",
+  "@ecuLabel": {
+    "placeholders": {
+      "ecu": {
+        "type": "String"
+      }
+    }
+  },
+  "testProgress": "Test running · {seconds} / 30 s",
+  "@testProgress": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "testConsumptionNotice": "Calculated from fuel flow and speed; this is not a historical average. Distance {distance} km · estimated fuel {fuel} L.",
+  "@testConsumptionNotice": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "fuel": {
+        "type": "String"
+      }
+    }
+  },
+  "noValidSamples": "No valid values · {failures} invalid responses",
+  "@noValidSamples": {
+    "placeholders": {
+      "failures": {
+        "type": "String"
+      }
+    }
+  },
+  "sampleSummary": "Mean {average} {unit} · min {minimum} · max {maximum} · {count} readings",
+  "@sampleSummary": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "minimum": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "failedSamples": " · {count} without data",
+  "@failedSamples": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "logExported": "Exported: {time}",
+  "@logExported": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "logDevice": "Device: {name}",
+  "@logDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logConnection": "Connection status: {status}",
+  "@logConnection": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "logPids": "PID status: {status}",
+  "@logPids": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "logEcu": "ECU: {ecu}",
+  "@logEcu": {
+    "placeholders": {
+      "ecu": {
+        "type": "String"
+      }
+    }
+  },
+  "logProtocol": "Protocol: {protocol}",
+  "@logProtocol": {
+    "placeholders": {
+      "protocol": {
+        "type": "String"
+      }
+    }
+  },
+  "logPidList": "Standard PIDs: {pids}",
+  "@logPidList": {
+    "placeholders": {
+      "pids": {
+        "type": "String"
+      }
+    }
+  },
+  "logSaved": "Log saved to {path}",
+  "@logSaved": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailed": "Export failed: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reconnectingAttempt": "Reconnection {attempt} of 3…",
+  "@reconnectingAttempt": {
+    "placeholders": {
+      "attempt": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingDevice": "Connecting to {name}…",
+  "@connectingDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pairingDevice": "Pairing with {name}… Confirm the Android request.",
+  "@pairingDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "connectedDevice": "Connected to {name}",
+  "@connectedDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pidsQueryRange": "Querying PIDs {first}–{last}…",
+  "@pidsQueryRange": {
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "last": {
+        "type": "String"
+      }
+    }
+  },
+  "pidsFound": "{count} standard PIDs detected on ECU {ecu}.",
+  "@pidsFound": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "ecu": {
+        "type": "String"
+      }
+    }
+  },
+  "pidCheckFailed": "PID check incomplete: {error}",
+  "@pidCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "testInterrupted": "Test stopped after {seconds}s · {count} valid readings",
+  "@testInterrupted": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "testCompleted": "Test complete · 30 s · {count} valid readings",
+  "@testCompleted": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "testFailed": "Test stopped: {error}",
+  "@testFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "warmupReason": "Penalty for load over {load}% below {temperature} °C, over observed time.",
+  "@warmupReason": {
+    "placeholders": {
+      "load": {
+        "type": "String"
+      },
+      "temperature": {
+        "type": "String"
+      }
+    }
+  },
+  "economyReason": "Ratio against the {baseline} l/100 km baseline; requires ≥80% coverage and ≥100 m distance.",
+  "@economyReason": {
+    "placeholders": {
+      "baseline": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreIntro": "Score {score}/100 across {components} available components. ",
+  "@scoreIntro": {
+    "placeholders": {
+      "score": {
+        "type": "String"
+      },
+      "components": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreMapPortion": "{percent}% of mapped time in favorable zones under the configured rules. ",
+  "@scoreMapPortion": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreEventCount": "{count} acceleration or braking events. ",
+  "@scoreEventCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "scoreMapCoverage": "Map coverage: {percent}%. Heuristic model, to be calibrated on real trips.",
+  "@scoreMapCoverage": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "unsupportedModel": "Model {version} is not supported",
+  "@unsupportedModel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "initializationFailed": "Initialization failed: {command}.",
+  "@initializationFailed": {
+    "placeholders": {
+      "command": {
+        "type": "String"
+      }
+    }
+  },
+  "unconfirmedCommand": "The adapter did not confirm {command}.",
+  "@unconfirmedCommand": {
+    "placeholders": {
+      "command": {
+        "type": "String"
+      }
+    }
+  },
+  "incompleteResponse": "Incomplete {command} response",
+  "@incompleteResponse": {
+    "placeholders": {
+      "command": {
+        "type": "String"
+      }
+    }
+  },
+  "incompletePidResponse": "Incomplete PID {command} response",
+  "@incompletePidResponse": {
+    "placeholders": {
+      "command": {
+        "type": "String"
+      }
+    }
+  },
+  "undecodedPid": "Standard PID not decoded: {pid}",
+  "@undecodedPid": {
+    "placeholders": {
+      "pid": {
+        "type": "String"
+      }
+    }
+  },
+  "noResponse": "No response to {command}",
+  "@noResponse": {
+    "placeholders": {
+      "command": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionError": "Connection failed: {error}",
+  "@connectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "saveRecordingFailed": "Saving failed; recording paused. Data in memory is preserved. {error}",
+  "@saveRecordingFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "automaticTripName": "Trip {date}",
+  "@automaticTripName": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
+}

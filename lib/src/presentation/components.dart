@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../localization/localization.dart';
+
 import '../theme/app_theme.dart';
 export '../theme/app_theme.dart' show DriveColors;
 
@@ -218,7 +220,7 @@ Future<void> showFailure(BuildContext context, Object error) async {
   if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(error.toString()),
+      content: Text(context.l10n.error(error)),
       behavior: SnackBarBehavior.floating,
     ),
   );

@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../localization/localization.dart';
 import '../domain/telemetry.dart';
 import '../domain/trip.dart';
 import '../features/analytics/trip_analyzer.dart';
@@ -32,9 +33,9 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionTitle(
-            'Ogni viaggio ha una storia.',
-            subtitle: 'Ritrova i percorsi, esplora il motore e confronta i risultati.',
+          SectionTitle(
+            context.l10n.tripsTitle,
+            subtitle: context.l10n.tripsSubtitle,
           ),
           Wrap(
             spacing: 12,
@@ -44,7 +45,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
                 onPressed: _importing ? null : _import,
                 icon: const Icon(Icons.file_upload_outlined),
                 label: Text(
-                  _importing ? 'Importazione…' : 'Importa CSV / DriveMap',
+                  _importing ? context.l10n.importing : context.l10n.importData,
                 ),
               ),
               OutlinedButton.icon(
@@ -57,12 +58,12 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
                       )
                     : null,
                 icon: const Icon(Icons.compare_arrows),
-                label: Text('Confronta (${_selected.length}/2)'),
+                label: Text(context.l10n.compareCount('${_selected.length}')),
               ),
               IconButton(
                 onPressed: () => ref.invalidate(tripsProvider),
                 icon: const Icon(Icons.refresh),
-                tooltip: 'Aggiorna viaggi',
+                tooltip: context.l10n.refreshTrips,
               ),
             ],
           ),
@@ -71,21 +72,21 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) => EmptyPanel(
               icon: Icons.storage_outlined,
-              title: 'Archivio non disponibile',
-              message: error.toString(),
+              title: context.l10n.archiveUnavailable,
+              message: context.l10n.error(error),
               action: OutlinedButton(
                 onPressed: () {
                   ref.invalidate(databaseProvider);
                   ref.invalidate(tripsProvider);
                 },
-                child: const Text('Riprova'),
+                child: Text(context.l10n.retry),
               ),
             ),
             data: (items) => items.isEmpty
-                ? const EmptyPanel(
+                ? EmptyPanel(
                     icon: Icons.route_outlined,
-                    title: 'Il primo viaggio ti aspetta',
-                    message: 'Inizia un viaggio dalla Home oppure importa un CSV. Puoi provare anche la demo: i dati simulati saranno riconoscibili in archivio.',
+                    title: context.l10n.firstTrip,
+                    message: context.l10n.firstTripNotice,
                   )
                 : Column(
                     children: [
@@ -125,7 +126,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            trip.name,
+                                            context.l10n.message(trip.name),
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .titleMedium,
@@ -148,8 +149,8 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
                                                     ? 'DEMO'
                                                     : trip.source ==
                                                           TripSource.csv
-                                                    ? 'CSV importato'
-                                                    : 'OBD reale',
+                                                    ? context.l10n.importedCsv
+                                                    : context.l10n.realObd,
                                                 color:
                                                     trip.source ==
                                                         TripSource.demo
@@ -157,17 +158,21 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
                                                     : DriveColors.accent,
                                               ),
                                               if (trip.status == 'interrupted')
-                                                const StatusPill(
-                                                  'Interrotto · recuperato',
+                                                StatusPill(
+                                                  context
+                                                      .l10n
+                                                      .interruptedRecovered,
                                                   color: DriveColors.amber,
                                                 ),
                                               if (trip.id == activeTrip)
-                                                const StatusPill(
-                                                  'Sessione aperta',
+                                                StatusPill(
+                                                  context.l10n.openSession,
                                                   color: DriveColors.amber,
                                                 ),
                                               Text(
-                                                '${trip.frameCount} frame',
+                                                context.l10n.frameCount(
+                                                  '${trip.frameCount}',
+                                                ),
                                                 style: const TextStyle(
                                                   color: DriveColors.muted,
                                                   fontSize: 12,
@@ -185,15 +190,15 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
                                       ? null
                                       : () => _open(trip.id),
                                   icon: const Icon(Icons.arrow_forward),
-                                  tooltip: 'Analizza viaggio',
+                                  tooltip: context.l10n.analyzeTrip,
                                 ),
                                 PopupMenuButton<String>(
                                   enabled: trip.id != activeTrip,
                                   onSelected: (_) => _delete(trip),
                                   itemBuilder: (_) => [
-                                    const PopupMenuItem(
+                                    PopupMenuItem(
                                       value: 'delete',
-                                      child: Text('Elimina viaggio'),
+                                      child: Text(context.l10n.deleteTrip),
                                     ),
                                   ],
                                 ),
@@ -216,18 +221,18 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminare il viaggio?'),
+        title: Text(context.l10n.deleteTripQuestion),
         content: Text(
-          '“${trip.name}” e i suoi dati saranno eliminati dal dispositivo.',
+          context.l10n.deleteTripNotice(context.l10n.message(trip.name)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annulla'),
+            child: Text(context.l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Elimina'),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),
@@ -254,10 +259,9 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
       );
       if (files.isEmpty) return;
       final bytes = await files.first.readAsBytes();
+      if (!mounted) return;
       if (bytes.length > 30 * 1024 * 1024) {
-        throw const FormatException(
-          'Limite file: 30 MB. Suddividi i viaggi più grandi.',
-        );
+        throw FormatException(context.l10n.fileSizeLimit);
       }
       final text = utf8.decode(bytes);
       if (!mounted) return;
@@ -287,7 +291,11 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Importati ${frames.length} frame. Righe scartate: ${request.discardedRows}; valori invalidi: ${request.invalidValues}.',
+                context.l10n.importResult(
+                  '${frames.length}',
+                  '${request.discardedRows}',
+                  '${request.invalidValues}',
+                ),
               ),
             ),
           );
@@ -321,12 +329,12 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
   Future<void> _importBundle(String text) async {
     final json = jsonDecode(text) as Map<String, dynamic>;
     if (json['format'] != 'drivemap-1') {
-      throw const FormatException('Formato DriveMap non riconosciuto.');
+      throw FormatException(context.l10n.unknownBundle);
     }
     final config = ScoreConfig.decode(jsonEncode(json['config']));
     final list = json['frames'] as List;
     if (list.length < 2 || list.length > 200000) {
-      throw const FormatException('Numero di frame non valido (2–200.000).');
+      throw FormatException(context.l10n.invalidFrameCount);
     }
     final frames =
         list
@@ -338,7 +346,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
           ..sort((a, b) => a.at.compareTo(b.at));
     final rawList = json['raw'] as List? ?? [];
     if (rawList.length > 1000000) {
-      throw const FormatException('Troppi campioni raw.');
+      throw FormatException(context.l10n.tooManyRaw);
     }
     final raw = rawList
         .map(
@@ -375,33 +383,34 @@ class TripAnalysisScreen extends ConsumerWidget {
     final data = ref.watch(tripDetailProvider(id)).asData?.value;
     return Scaffold(
       appBar: AppBar(
-        title: Text(data?.trip.name ?? 'Analisi viaggio'),
+        title: Text(
+          data == null
+              ? context.l10n.tripAnalysis
+              : context.l10n.message(data.trip.name),
+        ),
         actions: [
           PopupMenuButton<String>(
             enabled: data != null,
             onSelected: (value) => _export(context, ref, value),
             icon: const Icon(Icons.file_download_outlined),
-            tooltip: 'Esporta viaggio',
-            itemBuilder: (_) => const [
+            tooltip: context.l10n.exportTrip,
+            itemBuilder: (_) => [
               PopupMenuItem(
                 value: 'bundle',
-                child: Text('DriveMap · dati, raw e modello'),
+                child: Text(context.l10n.exportBundle),
               ),
               PopupMenuItem(
                 value: 'csv',
-                child: Text('CSV · telemetria e orari PID'),
+                child: Text(context.l10n.exportTelemetry),
               ),
-              PopupMenuItem(
-                value: 'raw',
-                child: Text('CSV · risposte OBD raw'),
-              ),
+              PopupMenuItem(value: 'raw', child: Text(context.l10n.exportRaw)),
             ],
           ),
         ],
       ),
       body: analysis.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text(error.toString())),
+        error: (error, _) => Center(child: Text(context.l10n.error(error))),
         data: (a) => SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Center(
@@ -417,13 +426,13 @@ class TripAnalysisScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     if (data.trip.source == TripSource.demo)
-                      const StatusPill(
-                        'Viaggio dimostrativo · telemetria simulata',
+                      StatusPill(
+                        context.l10n.demoTripNotice,
                         color: DriveColors.amber,
                       ),
                     if (data.trip.source == TripSource.csv)
-                      const StatusPill(
-                        'CSV · origine e unità definite in importazione',
+                      StatusPill(
+                        context.l10n.csvTripNotice,
                         color: DriveColors.amber,
                       ),
                   ],
@@ -441,14 +450,15 @@ class TripAnalysisScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SectionTitle(
-                          'Gli eventi del viaggio',
-                          subtitle:
-                              '${a.events.length} eventi · soglie del modello salvato con il viaggio',
+                          context.l10n.tripEvents,
+                          subtitle: context.l10n.eventCount(
+                            '${a.events.length}',
+                          ),
                         ),
                         if (a.events.isEmpty)
-                          const Text(
-                            'Nessun evento rilevato nei campioni disponibili.',
-                            style: TextStyle(color: DriveColors.muted),
+                          Text(
+                            context.l10n.noEvents,
+                            style: const TextStyle(color: DriveColors.muted),
                           ),
                         for (final event in a.events.take(100))
                           ListTile(
@@ -457,16 +467,14 @@ class TripAnalysisScreen extends ConsumerWidget {
                               Icons.bolt,
                               color: DriveColors.amber,
                             ),
-                            title: Text(event.label),
+                            title: Text(context.l10n.message(event.label)),
                             subtitle: Text(dateLabel(event.at)),
                             trailing: Text(
                               '${event.value.toStringAsFixed(1)} m/s²',
                             ),
                           ),
                         if (a.events.length > 100)
-                          const Text(
-                            'Visualizzati i primi 100 eventi. Tutti i dati sono disponibili in esportazione.',
-                          ),
+                          Text(context.l10n.firstHundredEvents),
                       ],
                     ),
                   ),
@@ -526,9 +534,9 @@ class TripAnalysisScreen extends ConsumerWidget {
         mimeType: extension == 'json' ? 'application/json' : 'text/csv',
       );
       if (context.mounted && saved != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Esportazione completata.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.exportCompleted)));
       }
     } catch (error) {
       if (context.mounted) await showFailure(context, error);
@@ -551,10 +559,14 @@ class _Summary extends StatelessWidget {
       final count = constraints.maxWidth > 750 ? 4 : 2;
       final a = analysis;
       final metrics = [
-        Metric('Tempo osservato', durationLabel(a.duration), ''),
-        Metric('Distanza integrata', number(a.distanceKm, 2), 'km'),
-        Metric('Carburante integrato', number(a.fuelLiters, 2), 'l'),
-        Metric('Consumo stimato', number(a.consumption, 1), 'l/100 km'),
+        Metric(context.l10n.observedTime, durationLabel(a.duration), ''),
+        Metric(context.l10n.integratedDistance, number(a.distanceKm, 2), 'km'),
+        Metric(context.l10n.integratedFuel, number(a.fuelLiters, 2), 'l'),
+        Metric(
+          context.l10n.estimatedConsumption,
+          number(a.consumption, 1),
+          'l/100 km',
+        ),
       ];
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,7 +584,10 @@ class _Summary extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Copertura: velocità ${(a.speedCoverage * 100).round()}% · fuel rate ${(a.fuelCoverage * 100).round()}%. Distanza e carburante si riferiscono agli intervalli validi.',
+            context.l10n.coverageNotice(
+              '${(a.speedCoverage * 100).round()}',
+              '${(a.fuelCoverage * 100).round()}',
+            ),
             style: const TextStyle(
               color: DriveColors.muted,
               fontSize: 11,
@@ -601,9 +616,9 @@ class ScorePanel extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'IL TUO SCORE',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.yourScore,
+                      style: const TextStyle(
                         color: DriveColors.accent,
                         fontSize: 11,
                         letterSpacing: 2,
@@ -634,15 +649,15 @@ class ScorePanel extends StatelessWidget {
                   ],
                 ),
               ),
-              const StatusPill(
-                'Spiegabile · v1',
+              StatusPill(
+                context.l10n.explainable,
                 icon: Icons.insights_outlined,
               ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
-            a.explanation,
+            context.l10n.analysisExplanation(a),
             style: const TextStyle(color: DriveColors.muted, height: 1.6),
           ),
           const SizedBox(height: 24),
@@ -654,10 +669,10 @@ class ScorePanel extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: Text(part.name)),
+                      Expanded(child: Text(context.l10n.message(part.name))),
                       Text(
                         part.value == null
-                            ? 'Non calcolato'
+                            ? context.l10n.notCalculated
                             : '${part.value!.round()}/100',
                         style: TextStyle(
                           color: part.value == null
@@ -677,8 +692,7 @@ class ScorePanel extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${part.reason}\nCopertura ${(part.coverage * 100).round()}% · '
-                    '${part.value == null || a.effectiveWeight == 0 ? 'peso escluso' : 'peso effettivo ${(part.weight / a.effectiveWeight * 100).toStringAsFixed(1)}% · contributo ${(part.value! * part.weight / a.effectiveWeight).toStringAsFixed(1)} punti'}',
+                    '${context.l10n.message(part.reason)}\n${part.value == null || a.effectiveWeight == 0 ? context.l10n.excludedWeight('${(part.coverage * 100).round()}') : context.l10n.effectiveWeight('${(part.coverage * 100).round()}', (part.weight / a.effectiveWeight * 100).toStringAsFixed(1), (part.value! * part.weight / a.effectiveWeight).toStringAsFixed(1))}',
                     style: const TextStyle(
                       color: DriveColors.muted,
                       fontSize: 11,
@@ -704,35 +718,35 @@ class ComparisonScreen extends ConsumerWidget {
     final one = ref.watch(tripDetailProvider(ids[0])).asData?.value;
     final two = ref.watch(tripDetailProvider(ids[1])).asData?.value;
     return Scaffold(
-      appBar: AppBar(title: const Text('Due viaggi, a confronto')),
+      appBar: AppBar(title: Text(context.l10n.compareTrips)),
       body: first.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(e.toString())),
+        error: (e, _) => Center(child: Text(context.l10n.error(e))),
         data: (a) => second.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text(e.toString())),
+          error: (e, _) => Center(child: Text(context.l10n.error(e))),
           data: (b) => SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Confronta percorsi e condizioni simili. Traffico, temperatura e pendenza possono cambiare i risultati.',
-                  style: TextStyle(color: DriveColors.muted, height: 1.6),
+                Text(
+                  context.l10n.comparisonNotice,
+                  style: const TextStyle(color: DriveColors.muted, height: 1.6),
                 ),
                 if (one?.trip.configJson != two?.trip.configJson)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
                     child: StatusPill(
-                      'Modelli diversi: score non direttamente comparabili',
+                      context.l10n.differentModels,
                       color: DriveColors.amber,
                     ),
                   ),
                 if (one?.trip.source != two?.trip.source)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
                     child: StatusPill(
-                      'Origini dei dati diverse',
+                      context.l10n.differentSources,
                       color: DriveColors.amber,
                     ),
                   ),
@@ -741,34 +755,50 @@ class ComparisonScreen extends ConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
                     columns: [
-                      const DataColumn(label: Text('Metrica')),
-                      DataColumn(label: Text(one?.trip.name ?? 'Viaggio A')),
-                      DataColumn(label: Text(two?.trip.name ?? 'Viaggio B')),
+                      DataColumn(label: Text(context.l10n.metric)),
+                      DataColumn(
+                        label: Text(
+                          one == null
+                              ? context.l10n.tripA
+                              : context.l10n.message(one.trip.name),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          two == null
+                              ? context.l10n.tripB
+                              : context.l10n.message(two.trip.name),
+                        ),
+                      ),
                     ],
                     rows: [
-                      _row('Score / 100', number(a.score), number(b.score)),
                       _row(
-                        'Distanza km',
+                        context.l10n.scoreMetric,
+                        number(a.score),
+                        number(b.score),
+                      ),
+                      _row(
+                        context.l10n.distanceMetric,
                         number(a.distanceKm, 2),
                         number(b.distanceKm, 2),
                       ),
                       _row(
-                        'Consumo l/100 km',
+                        context.l10n.consumptionMetric,
                         number(a.consumption, 1),
                         number(b.consumption, 1),
                       ),
                       _row(
-                        'Zone favorevoli',
+                        context.l10n.favorableZones,
                         '${(a.favorableFraction * 100).round()}%',
                         '${(b.favorableFraction * 100).round()}%',
                       ),
                       _row(
-                        'Eventi di guida',
+                        context.l10n.drivingEvents,
                         '${a.events.length}',
                         '${b.events.length}',
                       ),
                       _row(
-                        'Tempo mappato',
+                        context.l10n.mappedTime,
                         durationLabel(a.validMapSeconds),
                         durationLabel(b.validMapSeconds),
                       ),
@@ -849,7 +879,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Associa le colonne del CSV'),
+    title: Text(context.l10n.mapCsvColumns),
     content: SizedBox(
       width: 560,
       child: SingleChildScrollView(
@@ -857,17 +887,15 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '${widget.preview.rows.length} righe. Conferma le unità: velocità km/h (o mph indicato), RPM, carico/farfalla %, temperatura °C (o °F indicato), fuel rate l/h.',
+              context.l10n.csvPreview('${widget.preview.rows.length}'),
               style: const TextStyle(color: DriveColors.muted, height: 1.5),
             ),
             const SizedBox(height: 18),
-            _column('Tempo', _time, (v) => setState(() => _time = v)),
+            _column(context.l10n.time, _time, (v) => setState(() => _time = v)),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Tempo in secondi dall’inizio'),
-              subtitle: const Text(
-                'Disattiva per timestamp ISO 8601 con fuso orario.',
-              ),
+              title: Text(context.l10n.elapsedSeconds),
+              subtitle: Text(context.l10n.isoTimeNotice),
               value: _elapsed,
               onChanged: (v) => setState(() => _elapsed = v),
             ),
@@ -876,8 +904,8 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: TextField(
                   controller: _origin,
-                  decoration: const InputDecoration(
-                    labelText: 'Inizio viaggio · ISO 8601 con fuso',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.tripStartIso,
                   ),
                 ),
               ),
@@ -885,13 +913,16 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _column(
-                  '${p.label} · ${p.unit}',
+                  '${context.l10n.pidLabel(p.code)} · ${p.unit}',
                   _mapping[p]!,
                   (v) => setState(() => _mapping[p] = v),
                 ),
               ),
             if (_error != null)
-              Text(_error!, style: const TextStyle(color: DriveColors.red)),
+              Text(
+                context.l10n.message(_error!),
+                style: const TextStyle(color: DriveColors.red),
+              ),
           ],
         ),
       ),
@@ -899,7 +930,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Annulla'),
+        child: Text(context.l10n.cancel),
       ),
       FilledButton(
         onPressed: () {
@@ -908,9 +939,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
             if (_elapsed &&
                 (origin == null ||
                     !RegExp(r'(Z|[+-]\d\d:\d\d)$').hasMatch(_origin.text))) {
-              throw const FormatException(
-                'Inserisci un inizio viaggio ISO con fuso, ad esempio 2026-10-01T10:00:00+02:00.',
-              );
+              throw FormatException(context.l10n.invalidOrigin);
             }
             final result = CsvImporter.convert(
               widget.preview,
@@ -924,10 +953,10 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
             );
             Navigator.pop(context, result);
           } catch (error) {
-            setState(() => _error = error.toString());
+            setState(() => _error = context.l10n.error(error));
           }
         },
-        child: const Text('Importa viaggio'),
+        child: Text(context.l10n.importTrip),
       ),
     ],
   );
@@ -937,7 +966,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
         isExpanded: true,
         decoration: InputDecoration(labelText: label),
         items: [
-          const DropdownMenuItem(value: -1, child: Text('Non presente')),
+          DropdownMenuItem(value: -1, child: Text(context.l10n.notPresent)),
           for (var i = 0; i < widget.preview.headers.length; i++)
             DropdownMenuItem(
               value: i,
