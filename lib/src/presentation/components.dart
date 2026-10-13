@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
 
-abstract final class DriveColors {
-  static const background = Color(0xFF0C1118);
-  static const surface = Color(0xFF151D27);
-  static const border = Color(0xFF293440);
-  static const accent = Color(0xFF7AE0C4);
-  static const muted = Color(0xFF9CABB9);
-  static const amber = Color(0xFFFFBE79);
-  static const red = Color(0xFFFF8585);
-}
+import '../theme/app_theme.dart';
+export '../theme/app_theme.dart' show DriveColors;
 
 class Panel extends StatelessWidget {
   const Panel({super.key, required this.child, this.padding = 24, this.color});
@@ -17,13 +10,21 @@ class Panel extends StatelessWidget {
   final Color? color;
   @override
   Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.all(padding),
     decoration: BoxDecoration(
-      color: color ?? DriveColors.surface,
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(color: DriveColors.border),
+      borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+      boxShadow: const [
+        BoxShadow(color: DriveColors.border, offset: Offset(0, 3)),
+      ],
     ),
-    child: child,
+    child: Material(
+      color: color ?? DriveColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        side: const BorderSide(color: DriveColors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(padding: EdgeInsets.all(padding), child: child),
+    ),
   );
 }
 
@@ -45,7 +46,7 @@ class SectionTitle extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                    ?.copyWith(fontWeight: FontWeight.w800),
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: 6),
@@ -91,7 +92,7 @@ class StatusPill extends StatelessWidget {
             style: TextStyle(
               color: color,
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),

@@ -206,9 +206,9 @@ class _MapPainter extends CustomPainter {
             ? v / maximum
             : 0.0;
         final color = v == null
-            ? const Color(0xFF202A35)
+            ? DriveColors.border.withValues(alpha: .55)
             : Color.lerp(
-                const Color(0xFF23443F),
+                DriveColors.mint,
                 metric == MapMetric.penalty
                     ? DriveColors.red
                     : DriveColors.accent,
@@ -454,13 +454,13 @@ class _TimelinePainter extends CustomPainter {
       canvas.drawLine(
         Offset(x(f.at), rect.top),
         Offset(x(f.at), rect.bottom),
-        Paint()..color = Colors.white54,
+        Paint()..color = DriveColors.ink.withValues(alpha: .55),
       );
       if (f[pid] != null) {
         canvas.drawCircle(
           Offset(x(f.at), y(f[pid]!)),
           4,
-          Paint()..color = Colors.white,
+          Paint()..color = DriveColors.ink,
         );
       }
     }

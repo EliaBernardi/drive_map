@@ -2,6 +2,12 @@
 
 La schermata principale collega OBDLink MX+ su Android con Bluetooth Classic RFCOMM/SPP, mostra la telemetria live e registra i viaggi localmente. Il verificatore OBD con ATI, PID supportati e log resta accessibile da **Diagnostica e log OBD**.
 
+## Navigazione e aspetto
+
+La barra inferiore compatta contiene quattro pagine: **Home** per connessione e registrazione, **Telemetria** per i valori live, **Viaggi** per archivio ed esportazione e **Profilo** per il veicolo e i parametri di analisi. Cambiare pagina conserva la sessione OBD e lo stato della registrazione.
+
+`AppTheme` centralizza il tema verde e grigio chiaro. `MainScaffold` contiene intestazione e navigazione; il piccolo logo isometrico è disegnato in Flutter, senza asset o librerie aggiuntive.
+
 ## Prova sul Samsung Galaxy S25 Ultra
 
 1. Inserire MX+ nella porta OBD e accendere il quadro. Chiudere altre app connesse all'adattatore.

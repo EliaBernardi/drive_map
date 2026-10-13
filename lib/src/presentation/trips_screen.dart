@@ -85,7 +85,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
                 ? const EmptyPanel(
                     icon: Icons.route_outlined,
                     title: 'Il primo viaggio ti aspetta',
-                    message: 'Registra dalla schermata Live oppure importa un CSV. Puoi iniziare anche con la demo: i dati simulati saranno riconoscibili in archivio.',
+                    message: 'Inizia un viaggio dalla Home oppure importa un CSV. Puoi provare anche la demo: i dati simulati saranno riconoscibili in archivio.',
                   )
                 : Column(
                     children: [
@@ -616,7 +616,7 @@ class ScorePanel extends StatelessWidget {
                           TextSpan(
                             text: number(a.score),
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: DriveColors.ink,
                               fontSize: 56,
                               fontWeight: FontWeight.w500,
                             ),
