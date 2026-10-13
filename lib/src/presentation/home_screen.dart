@@ -244,6 +244,15 @@ class HomeScreen extends ConsumerWidget {
     bool connecting,
   ) {
     final c = ref.read(dashboardProvider.notifier);
+    final devices =
+        state.devices
+            .where(
+              (device) =>
+                  !state.onlyObdLink ||
+                  device.name.toLowerCase().startsWith('obdlink'),
+            )
+            .toList()
+          ..sort((a, b) => a.name.compareTo(b.name));
     return Panel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +267,10 @@ class HomeScreen extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-              if (connecting || state.busy)
+              if (connecting ||
+                  state.busy ||
+                  state.scanning ||
+                  state.loadingDevices)
                 const SizedBox(
                   width: 18,
                   height: 18,
@@ -327,59 +339,144 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 20),
-            if (PlatformObdTransport.supported)
+            if (PlatformObdTransport.discoverySupported)
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
                 children: [
                   FilledButton.icon(
-                    onPressed: connecting || state.loadingDevices || state.busy
+                    onPressed:
+                        connecting ||
+                            state.scanning ||
+                            state.loadingDevices ||
+                            state.busy
                         ? null
-                        : c.discover,
-                    icon: const Icon(Icons.refresh),
+                        : c.scanNearby,
+                    icon: const Icon(Icons.add_circle_outline),
                     label: Text(
-                      state.loadingDevices
+                      state.scanning
                           ? context.l10n.searching
-                          : context.l10n.pairedDevices,
+                          : context.l10n.addObd,
                     ),
                   ),
-                  OutlinedButton(
-                    onPressed: connecting || state.busy ? null : c.pairing,
-                    child: Text(context.l10n.pairDevice),
+                  TextButton.icon(
+                    onPressed:
+                        connecting ||
+                            state.scanning ||
+                            state.busy ||
+                            state.loadingDevices
+                        ? null
+                        : c.discover,
+                    icon: const Icon(Icons.bluetooth_rounded, size: 18),
+                    label: Text(context.l10n.pairedDevices),
                   ),
                 ],
+              )
+            else if (PlatformObdTransport.supported)
+              FilledButton.icon(
+                onPressed: connecting || state.loadingDevices || state.busy
+                    ? null
+                    : c.discover,
+                icon: const Icon(Icons.bluetooth_rounded),
+                label: Text(context.l10n.pairedDevices),
               )
             else
               Text(
                 context.l10n.desktopNotice,
                 style: const TextStyle(color: DriveColors.amber),
               ),
-            for (final device in state.devices)
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.bluetooth),
-                title: Text(device.name),
-                subtitle: Text(device.id, style: const TextStyle(fontSize: 11)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: connecting || state.busy
-                    ? null
-                    : () => c.connect(device: device),
+            if (state.showDevices) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      context.l10n.bluetoothDevices,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  if (state.scanning)
+                    TextButton(
+                      onPressed: c.stopScan,
+                      child: Text(context.l10n.stopSearch),
+                    )
+                  else if (PlatformObdTransport.discoverySupported)
+                    IconButton(
+                      onPressed: connecting || state.busy ? null : c.scanNearby,
+                      tooltip: context.l10n.searchAgain,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                ],
               ),
+              SwitchListTile.adaptive(
+                contentPadding: EdgeInsets.zero,
+                title: Text(context.l10n.onlyObdLink),
+                value: state.onlyObdLink,
+                onChanged: c.setObdLinkFilter,
+              ),
+              if (state.scanning)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: LinearProgressIndicator(),
+                ),
+              if (devices.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    state.scanning
+                        ? context.l10n.scanningNearby
+                        : context.l10n.noVisibleDevices,
+                  ),
+                ),
+              for (final device in devices)
+                Card(
+                  margin: const EdgeInsets.only(top: 8),
+                  child: ListTile(
+                    leading: const Icon(Icons.bluetooth),
+                    title: Text(
+                      device.name.isEmpty
+                          ? context.l10n.unnamedDevice
+                          : device.name,
+                    ),
+                    subtitle: Text(
+                      '${device.id} · ${device.paired ? context.l10n.alreadyPaired : context.l10n.notPaired}',
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap:
+                        connecting ||
+                            state.busy ||
+                            (state.hasTrip && state.demo)
+                        ? null
+                        : () => c.connect(device: device),
+                  ),
+                ),
+              if (PlatformObdTransport.discoverySupported)
+                TextButton.icon(
+                  onPressed: connecting || state.busy ? null : c.pairing,
+                  icon: const Icon(Icons.settings_bluetooth, size: 18),
+                  label: Text(context.l10n.bluetoothSettings),
+                ),
+            ],
             if (!state.hasTrip && PlatformObdTransport.supported)
               TextButton.icon(
                 onPressed: connecting || state.busy
                     ? null
-                    : () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const AdapterCheckScreen(),
-                        ),
-                      ),
+                    : () async {
+                        await c.stopScan();
+                        if (!context.mounted) return;
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const AdapterCheckScreen(),
+                          ),
+                        );
+                      },
                 icon: const Icon(Icons.article_outlined, size: 18),
                 label: Text(context.l10n.diagnosticsLogs),
               ),
             if (connecting)
               TextButton(
-                onPressed: c.disconnect,
+                onPressed: state.busy ? c.cancelConnection : c.disconnect,
                 child: Text(context.l10n.cancelConnection),
               ),
             const SizedBox(height: 12),

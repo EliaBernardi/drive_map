@@ -6,7 +6,9 @@ import 'package:drive_map/src/providers.dart';
 import 'package:drive_map/src/localization/locale_controller.dart';
 import 'package:drive_map/src/localization/localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -133,4 +135,107 @@ void main() {
     );
     expect(find.text('Registrazione attiva'), findsOneWidget);
   });
+
+  testWidgets(
+    'Home scans nearby devices, filters names and pairs before connecting',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      tester.view.physicalSize = const Size(390, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const methodChannel = MethodChannel('drivemap/obd');
+      const discoveryChannel = EventChannel('drivemap/obd_discovery');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      final calls = <String>[];
+      late MockStreamHandlerEventSink events;
+      messenger.setMockStreamHandler(
+        discoveryChannel,
+        MockStreamHandler.inline(
+          onListen: (_, sink) {
+            events = sink;
+          },
+        ),
+      );
+      messenger.setMockMethodCallHandler(methodChannel, (call) async {
+        calls.add(call.method);
+        if (call.method == 'devices') {
+          return [
+            {'id': 'AA', 'name': 'OBDLink MX+ paired', 'paired': true},
+          ];
+        }
+        return null;
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [tripsProvider.overrideWith((ref) async => <Trip>[])],
+          child: const DriveMapApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Aggiungi OBD'), findsOneWidget);
+      expect(find.text('Dispositivi Bluetooth'), findsNothing);
+
+      await tester.tap(find.text('Aggiungi OBD'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(calls, contains('scan'));
+      expect(calls, contains('devices'));
+      events.success({
+        'type': 'device',
+        'id': 'BB',
+        'name': 'OBDLink MX+ vicino',
+        'paired': false,
+      });
+      events.success({
+        'type': 'device',
+        'id': 'CC',
+        'name': 'OPPO A54',
+        'paired': false,
+      });
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(find.text('OBDLink MX+ paired'), findsOneWidget);
+      expect(find.text('OBDLink MX+ vicino'), findsOneWidget);
+      expect(find.text('OPPO A54'), findsNothing);
+      expect(find.text('Mostra solo OBDLink'), findsOneWidget);
+
+      await tester.tap(find.text('Mostra solo OBDLink'));
+      await tester.pump();
+      expect(find.text('OPPO A54'), findsOneWidget);
+      await tester.tap(find.text('Mostra solo OBDLink'));
+      await tester.pump();
+      expect(find.text('OPPO A54'), findsNothing);
+
+      await tester.ensureVisible(find.text('OBDLink MX+ vicino'));
+      await tester.pump();
+      final nearbyTile = tester.widget<ListTile>(
+        find.ancestor(
+          of: find.text('OBDLink MX+ vicino'),
+          matching: find.byType(ListTile),
+        ),
+      );
+      expect(nearbyTile.onTap, isNotNull);
+      await tester.tap(find.text('OBDLink MX+ vicino'));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 100));
+      final state = ProviderScope.containerOf(
+        tester.element(find.byType(DriveMapShell)),
+      ).read(dashboardProvider);
+      expect(
+        calls.indexOf('stopScan'),
+        lessThan(calls.indexOf('bond')),
+        reason:
+            'calls=$calls; scanning=${state.scanning}; busy=${state.busy}; error=${state.error}',
+      );
+      expect(calls.indexOf('bond'), lessThan(calls.indexOf('connect')));
+      expect(calls, contains('write'));
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
 }

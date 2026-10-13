@@ -1,6 +1,6 @@
 # DriveMap · registrazione OBD e analisi viaggi
 
-La schermata principale collega OBDLink MX+ su Android con Bluetooth Classic RFCOMM/SPP, mostra la telemetria live e registra i viaggi localmente. Il verificatore OBD con ATI, PID supportati e log resta accessibile da **Diagnostica e log OBD**.
+La schermata principale cerca l’OBDLink nelle vicinanze con Bluetooth Classic, associa il dispositivo se necessario e si collega con RFCOMM/SPP. Mostra la telemetria live e registra i viaggi localmente. Il verificatore OBD con ATI, PID supportati e log resta accessibile da **Diagnostica e log OBD**.
 
 ## Navigazione e aspetto
 
@@ -15,8 +15,8 @@ Le traduzioni sono in `lib/l10n/app_it.arb` e `lib/l10n/app_en.arb`. Flutter gen
 ## Prova sul Samsung Galaxy S25 Ultra
 
 1. Inserire MX+ nella porta OBD e accendere il quadro. Chiudere altre app connesse all'adattatore.
-2. Se MX+ non è già associato, toccare **Associa dispositivo** e completare l'associazione nelle impostazioni Bluetooth Android.
-3. Tornare a DriveMap, toccare **Dispositivi associati** e selezionare OBDLink MX+. Concedere i permessi Bluetooth richiesti.
+2. Nella Home toccare **Aggiungi OBD** e concedere i permessi Bluetooth richiesti. Il filtro **Mostra solo OBDLink** è attivo inizialmente e si può disattivare per vedere anche gli altri dispositivi vicini.
+3. Toccare la card **OBDLink MX+**. Se necessario, confermare l’associazione Android: l’app avvia poi la connessione. **Dispositivi associati** resta disponibile per scegliere un adattatore già associato.
 4. Attendere **Telemetria attiva** e controllare che i PID utili risultino disponibili. Toccare **Inizia viaggio** prima di partire.
 5. Durante la registrazione lasciare DriveMap in primo piano. Quando la connessione RFCOMM è attiva Android tiene acceso lo schermo; se l'app va in background, la raccolta viene messa in pausa e il collegamento chiuso.
 6. Al termine del percorso toccare **Termina e salva**, poi **Viaggi** e aprire il viaggio. Dal pulsante di esportazione in alto scegliere **CSV · telemetria e orari PID**. Il CSV contiene sia il timestamp dei frame sia quello della lettura di ogni PID; è disponibile anche un CSV con le risposte OBD raw.

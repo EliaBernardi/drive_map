@@ -66,6 +66,9 @@ class DashboardState {
     this.connection = const ConnectionInfo(),
     this.frame,
     this.devices = const [],
+    this.scanning = false,
+    this.showDevices = false,
+    this.onlyObdLink = true,
     this.demo = false,
     this.deviceName = '',
     this.loadingDevices = false,
@@ -80,6 +83,7 @@ class DashboardState {
   final TelemetryFrame? frame;
   final List<ObdDevice> devices;
   final bool demo, loadingDevices, busy, paused;
+  final bool scanning, showDevices, onlyObdLink;
   final String deviceName;
   final String? tripId, error, savedTripId;
   final int frameCount;
@@ -89,6 +93,9 @@ class DashboardState {
     ConnectionInfo? connection,
     TelemetryFrame? frame,
     List<ObdDevice>? devices,
+    bool? scanning,
+    bool? showDevices,
+    bool? onlyObdLink,
     bool? demo,
     String? deviceName,
     bool? loadingDevices,
@@ -105,6 +112,9 @@ class DashboardState {
     connection: connection ?? this.connection,
     frame: clearFrame ? null : frame ?? this.frame,
     devices: devices ?? this.devices,
+    scanning: scanning ?? this.scanning,
+    showDevices: showDevices ?? this.showDevices,
+    onlyObdLink: onlyObdLink ?? this.onlyObdLink,
     demo: demo ?? this.demo,
     deviceName: deviceName ?? this.deviceName,
     loadingDevices: loadingDevices ?? this.loadingDevices,
@@ -125,6 +135,11 @@ class DashboardController extends Notifier<DashboardState> {
   ObdSession? _session;
   DemoTransport? _demoTransport;
   final List<StreamSubscription<dynamic>> _subscriptions = [];
+  StreamSubscription<Map<String, dynamic>>? _discovery;
+  Timer? _scanTimer;
+  Future<void>? _stoppingScan;
+  int _scanGeneration = 0;
+  int _connectionGeneration = 0;
   final List<TelemetryFrame> _pendingFrames = [];
   final List<RawSample> _pendingSamples = [];
   Future<void>? _flushing;
@@ -137,6 +152,11 @@ class DashboardController extends Notifier<DashboardState> {
   DashboardState build() {
     ref.onDispose(() {
       _flushTimer?.cancel();
+      _scanTimer?.cancel();
+      if (_discovery != null) {
+        unawaited(_discovery!.cancel());
+        unawaited(PlatformObdTransport.stopScan());
+      }
       for (final sub in _subscriptions) {
         unawaited(sub.cancel());
       }
@@ -154,8 +174,12 @@ class DashboardController extends Notifier<DashboardState> {
   }
 
   Future<void> discover() async {
-    if (state.loadingDevices) return;
-    state = state.copy(loadingDevices: true, clearError: true);
+    if (state.loadingDevices || state.scanning || state.busy) return;
+    state = state.copy(
+      loadingDevices: true,
+      showDevices: true,
+      clearError: true,
+    );
     try {
       final devices = await PlatformObdTransport.devices();
       if (ref.mounted) state = state.copy(devices: devices);
@@ -163,6 +187,111 @@ class DashboardController extends Notifier<DashboardState> {
       _error(error);
     } finally {
       if (ref.mounted) state = state.copy(loadingDevices: false);
+    }
+  }
+
+  void setObdLinkFilter(bool enabled) =>
+      state = state.copy(onlyObdLink: enabled);
+
+  Future<void> scanNearby() async {
+    if (_stoppingScan != null) await _stoppingScan;
+    if (state.scanning ||
+        state.busy ||
+        state.connection.ready ||
+        state.recording ||
+        !PlatformObdTransport.discoverySupported) {
+      return;
+    }
+    final token = ++_scanGeneration;
+    state = state.copy(
+      scanning: true,
+      showDevices: true,
+      devices: [],
+      clearError: true,
+    );
+    _discovery = PlatformObdTransport.discovery.listen(
+      (event) {
+        if (token != _scanGeneration || !ref.mounted) return;
+        if (event['type'] == 'finished') {
+          unawaited(stopScan());
+          return;
+        }
+        if (event['type'] != 'device') return;
+        final id = event['id'] as String?;
+        if (id == null || id.isEmpty) return;
+        final previous = state.devices.where((d) => d.id == id).firstOrNull;
+        final name = event['name'] as String? ?? '';
+        final device = ObdDevice(
+          id,
+          name.isNotEmpty ? name : previous?.name ?? '',
+          paired:
+              (event['paired'] as bool? ?? false) ||
+              (previous?.paired ?? false),
+        );
+        state = state.copy(
+          devices: [
+            for (final item in state.devices)
+              if (item.id != id) item,
+            device,
+          ],
+        );
+      },
+      onError: (Object error) {
+        if (token != _scanGeneration || !ref.mounted) return;
+        state = state.copy(error: readableError(error));
+        unawaited(stopScan());
+      },
+    );
+    try {
+      await PlatformObdTransport.scan();
+      if (token != _scanGeneration || !ref.mounted) {
+        await PlatformObdTransport.stopScan();
+        return;
+      }
+      final paired = await PlatformObdTransport.devices();
+      if (token != _scanGeneration || !ref.mounted) return;
+      final byId = {for (final d in state.devices) d.id: d};
+      for (final device in paired) {
+        final detected = byId[device.id];
+        byId[device.id] = ObdDevice(
+          device.id,
+          detected?.name.isNotEmpty == true ? detected!.name : device.name,
+          paired: true,
+        );
+      }
+      state = state.copy(devices: byId.values.toList());
+      _scanTimer = Timer(
+        const Duration(seconds: 25),
+        () => unawaited(stopScan()),
+      );
+    } catch (error) {
+      if (token == _scanGeneration && ref.mounted) {
+        state = state.copy(error: readableError(error));
+        await stopScan();
+      }
+    }
+  }
+
+  Future<void> stopScan() {
+    if (_stoppingScan != null) return _stoppingScan!;
+    final task = _performStopScan();
+    _stoppingScan = task;
+    return task.whenComplete(() => _stoppingScan = null);
+  }
+
+  Future<void> _performStopScan() async {
+    if (!state.scanning && _discovery == null) return;
+    ++_scanGeneration;
+    _scanTimer?.cancel();
+    _scanTimer = null;
+    final discovery = _discovery;
+    _discovery = null;
+    if (ref.mounted) state = state.copy(scanning: false);
+    if (discovery != null) unawaited(discovery.cancel());
+    try {
+      await PlatformObdTransport.stopScan();
+    } catch (error) {
+      if (ref.mounted) state = state.copy(error: readableError(error));
     }
   }
 
@@ -180,9 +309,34 @@ class DashboardController extends Notifier<DashboardState> {
         (state.hasTrip && state.demo != demo)) {
       return;
     }
+    final token = ++_connectionGeneration;
     state = state.copy(busy: true, clearError: true, clearFrame: true);
     try {
+      await stopScan();
+      if (token != _connectionGeneration || !ref.mounted) return;
       await _disposeSession();
+      if (token != _connectionGeneration || !ref.mounted) return;
+      if (!demo && !device!.paired) {
+        state = state.copy(
+          connection: ConnectionInfo(
+            phase: ConnectionPhase.connecting,
+            message:
+                'Associazione a ${device.name}… Conferma la richiesta Android.',
+          ),
+        );
+        await PlatformObdTransport.bond(device.id)
+            .timeout(const Duration(seconds: 50));
+        if (token != _connectionGeneration || !ref.mounted) return;
+        state = state.copy(
+          devices: [
+            for (final item in state.devices)
+              if (item.id == device.id)
+                ObdDevice(item.id, item.name, paired: true)
+              else
+                item,
+          ],
+        );
+      }
       final ObdTransport transport;
       if (demo) {
         _demoTransport = DemoTransport();
@@ -227,9 +381,31 @@ class DashboardController extends Notifier<DashboardState> {
       );
       await session.connect(demo ? 'demo' : device!.id);
     } catch (error) {
-      _error(error);
+      if (token == _connectionGeneration && ref.mounted) {
+        state = state.copy(connection: const ConnectionInfo());
+        _error(error);
+      }
     } finally {
-      if (ref.mounted) state = state.copy(busy: false);
+      if (token == _connectionGeneration && ref.mounted) {
+        state = state.copy(busy: false);
+      }
+    }
+  }
+
+  Future<void> cancelConnection() async {
+    ++_connectionGeneration;
+    try {
+      await PlatformObdTransport.cancelBond();
+    } catch (_) {
+      // There may be no pairing request to cancel.
+    }
+    await _disposeSession();
+    if (ref.mounted) {
+      state = state.copy(
+        connection: const ConnectionInfo(),
+        busy: false,
+        clearFrame: true,
+      );
     }
   }
 
@@ -260,6 +436,7 @@ class DashboardController extends Notifier<DashboardState> {
 
   Future<void> disconnect() async {
     if (state.busy) return;
+    await stopScan();
     if (state.recording) await pause();
     await _disposeSession();
     if (ref.mounted) {

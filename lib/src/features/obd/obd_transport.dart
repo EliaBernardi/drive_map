@@ -27,6 +27,8 @@ class PlatformObdTransport implements ObdTransport {
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
+  static bool get discoverySupported =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
   static Future<List<ObdDevice>> devices() async {
     if (!supported) {
       throw const ObdException(
