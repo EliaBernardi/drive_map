@@ -108,7 +108,9 @@ abstract final class PidDecoder {
         var remaining = parts.skip(1).join();
         if (remaining.startsWith('0') && remaining.length >= 2) {
           final length = int.tryParse(remaining.substring(0, 2), radix: 16);
-          if (length == null || length > 7 || remaining.length < 2 + length * 2) {
+          if (length == null ||
+              length > 7 ||
+              remaining.length < 2 + length * 2) {
             continue;
           }
           remaining = remaining.substring(2, 2 + length * 2);
@@ -164,6 +166,42 @@ abstract final class PidDecoder {
       Pid.voltage => (a * 256 + bytes[1]) / 1000,
       Pid.fuelRate => (a * 256 + bytes[1]) / 20,
     };
+  }
+
+  /// Decodes the app's selected Mode 01 values, including values that are
+  /// useful for the connection check but are not part of trip telemetry.
+  static double decodeStandard(int code, List<int> bytes) {
+    for (final pid in Pid.values) {
+      if (pid.code == code) return decode(pid, bytes);
+    }
+    switch (code) {
+      case 0x2F: // Fuel tank level, % of usable range.
+        if (bytes.isEmpty) {
+          throw const FormatException('Risposta PID 012F incompleta');
+        }
+        return bytes[0] * 100 / 255;
+      case 0x62: // Actual engine percent torque.
+        if (bytes.isEmpty) {
+          throw const FormatException('Risposta PID 0162 incompleta');
+        }
+        return bytes[0] - 125.0;
+      case 0x63: // Engine reference torque, Nm.
+        if (bytes.length < 2) {
+          throw const FormatException('Risposta PID 0163 incompleta');
+        }
+        return bytes[0] * 256 + bytes[1].toDouble();
+      case 0xA6: // Odometer, 0.1 km per bit.
+        if (bytes.length < 4) {
+          throw const FormatException('Risposta PID 01A6 incompleta');
+        }
+        final value =
+            (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+        return value / 10;
+      default:
+        throw FormatException(
+          'PID standard non decodificato: 0x${code.toRadixString(16)}',
+        );
+    }
   }
 
   static bool noData(String response) =>

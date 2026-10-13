@@ -1,23 +1,26 @@
-# DriveMap · collegamento OBD
+# DriveMap · registrazione OBD e analisi viaggi
 
-La schermata attiva collega OBDLink MX+ su Android con Bluetooth Classic RFCOMM/SPP. Dopo la connessione identifica l'adattatore e interroga automaticamente i bitmap Mode 01 per elencare i PID standard dichiarati dalla centralina.
+La schermata principale collega OBDLink MX+ su Android con Bluetooth Classic RFCOMM/SPP, mostra la telemetria live e registra i viaggi localmente. Il verificatore OBD con ATI, PID supportati e log resta accessibile da **Diagnostica e log OBD**.
 
 ## Prova sul Samsung Galaxy S25 Ultra
 
-1. Inserire MX+ nella porta OBD e accendere il quadro. Attivare la modalità associazione se l'adattatore non è già associato. Chiudere altre app connesse a MX+.
-2. Avviare l'app e toccare **Aggiungi OBD**. Concedere i permessi Bluetooth richiesti.
-3. Attendere la card **OBDLink…** e toccarla. Il filtro “Mostra solo OBDLink” si può disattivare se l'adattatore trasmette un nome diverso. Sono elencati anche dispositivi OBDLink già associati.
-4. Confermare la richiesta di associazione di Android. A connessione stabilita l'app invia `ATI`, configura l'adattatore e interroga `0100` e gli eventuali bitmap successivi (`0120`…`01E0`).
-5. La scheda **PID standard disponibili** mostra i codici rilevati, la centralina che ha risposto e il protocollo. Il log mostra i comandi e le risposte complete.
-6. Toccare **Esporta log in un file .txt** e scegliere dove salvare il file proposto con nome `yyyyMMdd_HHmmss.txt`.
+1. Inserire MX+ nella porta OBD e accendere il quadro. Chiudere altre app connesse all'adattatore.
+2. Se MX+ non è già associato, toccare **Associa dispositivo** e completare l'associazione nelle impostazioni Bluetooth Android.
+3. Tornare a DriveMap, toccare **Dispositivi associati** e selezionare OBDLink MX+. Concedere i permessi Bluetooth richiesti.
+4. Attendere **Telemetria attiva** e controllare che i PID utili risultino disponibili. Toccare **Inizia viaggio** prima di partire.
+5. Durante la registrazione lasciare DriveMap in primo piano. Quando la connessione RFCOMM è attiva Android tiene acceso lo schermo; se l'app va in background, la raccolta viene messa in pausa e il collegamento chiuso.
+6. Al termine del percorso toccare **Termina e salva**, poi **Viaggi** e aprire il viaggio. Dal pulsante di esportazione in alto scegliere **CSV · telemetria e orari PID**. Il CSV contiene sia il timestamp dei frame sia quello della lettura di ogni PID; è disponibile anche un CSV con le risposte OBD raw.
+7. Se la connessione cade, l'app tenta alcune riconnessioni. Se non riesce, mette in pausa il viaggio: riconnettere l'adattatore e toccare **Riprendi** per continuare nello stesso viaggio.
 
-Un PID marcato come supportato dalla bitmap potrebbe comunque non restituire sempre un valore valido quando verrà letto. La schermata attuale rileva solo il supporto dichiarato; non esegue polling dei valori.
+La raccolta è locale e in primo piano: non è progettata per proseguire con lo schermo spento o con l'app in background. Per un viaggio lungo collegare il telefono all'alimentazione e avviare la registrazione prima di partire; non interagire con l'app durante la guida.
+
+Un PID marcato come supportato dalla bitmap potrebbe comunque non restituire un valore valido quando viene letto. Il livello carburante è espresso in percentuale; il totale in litri non viene stimato. I consumi dei viaggi sono integrati dai PID portata carburante e velocità sugli intervalli con dati validi: sono stime OBD e la schermata mostra la copertura osservata.
 
 ## Implementazione
 
 - Android usa la discovery Bluetooth Classic, l'associazione via API Android e `BluetoothSocket` con UUID SPP. Ferma la scansione prima di connettersi.
 - Android 12+ richiede `BLUETOOTH_SCAN` e `BLUETOOTH_CONNECT`; Android 11 e precedenti richiedono `ACCESS_FINE_LOCATION` durante la discovery. La posizione non è usata dall'app.
-- `AdapterCheck` separa scansione, associazione, connessione, interrogazione PID e log dalla UI. `ElmChannel` ricompone i frammenti fino al prompt `>` e consente un solo comando in volo.
+- `AdapterCheck` separa scansione, associazione, connessione, interrogazione PID e log dalla UI. `ElmChannel` ricompone i frammenti fino al prompt `>` e consente un solo comando in volo. Il test diagnostico interroga i parametri principali per 30 secondi.
 - I log della sessione includono orari, eventi Bluetooth, comandi e risposte seriali, errori, centralina e bitmap PID. L'esportazione usa il selettore documenti Android.
-
-Le fasi di polling PID, registrazione e analisi dei viaggi non sono avviate da questa schermata.
+- `ObdSession` mantiene un unico collegamento RFCOMM, interroga i PID supportati in sequenza e tenta la riconnessione dopo una perdita del collegamento. Frame e campioni raw vengono salvati nel database SQLite locale ogni secondo.
+- L'app mette in pausa la registrazione e disconnette il trasporto quando passa in background. I CSV esportati contengono timestamp UTC individuali per i PID, così è possibile controllare la frequenza effettiva delle letture.

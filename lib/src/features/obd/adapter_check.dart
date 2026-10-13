@@ -2,8 +2,84 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../domain/telemetry.dart';
 import 'elm_protocol.dart';
 import 'obd_transport.dart';
+
+class PidTestSpec {
+  const PidTestSpec(this.code, this.label, this.unit);
+
+  final int code;
+  final String label;
+  final String unit;
+  String get hex => code.toRadixString(16).padLeft(2, '0').toUpperCase();
+  String get command => '01$hex';
+}
+
+class PidTestResult {
+  const PidTestResult({
+    required this.code,
+    required this.label,
+    required this.unit,
+    required this.latest,
+    required this.average,
+    required this.minimum,
+    required this.maximum,
+    required this.validSamples,
+    required this.failedSamples,
+  });
+
+  final int code;
+  final String label;
+  final String unit;
+  final double? latest;
+  final double? average;
+  final double? minimum;
+  final double? maximum;
+  final int validSamples;
+  final int failedSamples;
+  String get hex => code.toRadixString(16).padLeft(2, '0').toUpperCase();
+}
+
+class _PidTestAccumulator {
+  _PidTestAccumulator(this.spec);
+
+  final PidTestSpec spec;
+  double? latest;
+  double? minimum;
+  double? maximum;
+  double total = 0;
+  int validSamples = 0;
+  int failedSamples = 0;
+
+  void add(double value) {
+    latest = value;
+    minimum = minimum == null || value < minimum! ? value : minimum;
+    maximum = maximum == null || value > maximum! ? value : maximum;
+    total += value;
+    validSamples++;
+  }
+
+  PidTestResult get result => PidTestResult(
+    code: spec.code,
+    label: spec.label,
+    unit: spec.unit,
+    latest: latest,
+    average: validSamples == 0 ? null : total / validSamples,
+    minimum: minimum,
+    maximum: maximum,
+    validSamples: validSamples,
+    failedSamples: failedSamples,
+  );
+}
+
+final List<PidTestSpec> _pidTestSpecs = List.unmodifiable([
+  for (final pid in Pid.values) PidTestSpec(pid.code, pid.label, pid.unit),
+  const PidTestSpec(0x2F, 'Livello carburante', '%'),
+  const PidTestSpec(0x62, 'Coppia motore effettiva', '%'),
+  const PidTestSpec(0x63, 'Coppia motore di riferimento', 'Nm'),
+  const PidTestSpec(0xA6, 'Contachilometri totale', 'km'),
+]);
 
 /// Bluetooth Classic discovery, pairing, RFCOMM and one ELM identity request.
 class AdapterCheck extends ChangeNotifier {
@@ -33,7 +109,35 @@ class AdapterCheck extends ChangeNotifier {
   List<ObdDevice> devices = [];
   List<ObdDevice> nearby = [];
   final List<String> log = [];
+  bool pidTestRunning = false;
+  double pidTestProgress = 0;
+  String? pidTestMessage;
+  final Map<int, _PidTestAccumulator> _pidTestResults = {};
+  Stopwatch? _pidTestClock;
+  Timer? _pidTestTicker;
+  int _pidTestRun = 0;
+  bool _cancelPidTestRequested = false;
+  DateTime? _lastConsumptionIntegration;
+  double? _testSpeedKph;
+  double? _testFuelRateLph;
+  double _testDistanceKm = 0;
+  double _testFuelLiters = 0;
   bool _disposed = false;
+
+  List<PidTestSpec> get testablePids => _pidTestSpecs
+      .where((spec) => supportedPids.contains(spec.code))
+      .toList(growable: false);
+  List<PidTestResult> get pidTestResults => [
+    for (final spec in _pidTestSpecs)
+      if (_pidTestResults[spec.code] case final accumulator?)
+        accumulator.result,
+  ];
+  int get pidTestElapsedSeconds =>
+      ((_pidTestClock?.elapsedMilliseconds ?? 0) / 1000).floor().clamp(0, 30);
+  double get testDistanceKm => _testDistanceKm;
+  double get testFuelLiters => _testFuelLiters;
+  double? get averageConsumptionLPer100Km =>
+      _testDistanceKm < 0.005 ? null : _testFuelLiters * 100 / _testDistanceKm;
 
   void _update() {
     if (!_disposed) notifyListeners();
@@ -193,6 +297,11 @@ class AdapterCheck extends ChangeNotifier {
     supportedPids = {};
     ecu = null;
     protocol = '';
+    _pidTestResults.clear();
+    pidTestProgress = 0;
+    pidTestMessage = null;
+    _testDistanceKm = 0;
+    _testFuelLiters = 0;
     _update();
     _log('Connessione RFCOMM/SPP a ${device.name} (${device.id})');
     try {
@@ -258,6 +367,165 @@ class AdapterCheck extends ChangeNotifier {
       busy = false;
       _update();
     }
+  }
+
+  Future<void> runPidTest() async {
+    if (busy || pidTestRunning || !connected) return;
+    final specs = testablePids;
+    if (specs.isEmpty) {
+      pidTestMessage = 'Nessun PID principale supportato da interrogare.';
+      _update();
+      return;
+    }
+
+    final connectionToken = _generation;
+    final runToken = ++_pidTestRun;
+    const duration = Duration(seconds: 30);
+    final clock = Stopwatch()..start();
+    _pidTestClock = clock;
+    _pidTestTicker?.cancel();
+    _pidTestTicker = Timer.periodic(const Duration(milliseconds: 250), (_) {
+      if (runToken != _pidTestRun || !pidTestRunning) return;
+      pidTestProgress = (clock.elapsedMilliseconds / duration.inMilliseconds)
+          .clamp(0, 1);
+      _update();
+    });
+    _pidTestResults
+      ..clear()
+      ..addEntries(
+        specs.map((spec) => MapEntry(spec.code, _PidTestAccumulator(spec))),
+      );
+    _testSpeedKph = null;
+    _testFuelRateLph = null;
+    _testDistanceKm = 0;
+    _testFuelLiters = 0;
+    _lastConsumptionIntegration = DateTime.now();
+    _cancelPidTestRequested = false;
+    pidTestProgress = 0;
+    pidTestRunning = true;
+    pidTestMessage = 'Test in corso · 0 / 30 s';
+    error = null;
+    busy = true;
+    _log(
+      'Avvio test PID per 30 secondi (${specs.length} parametri supportati)',
+    );
+    _update();
+
+    try {
+      while (clock.elapsed < duration &&
+          connectionToken == _generation &&
+          connected &&
+          runToken == _pidTestRun &&
+          !_cancelPidTestRequested) {
+        for (final spec in specs) {
+          if (clock.elapsed >= duration ||
+              connectionToken != _generation ||
+              !connected ||
+              runToken != _pidTestRun ||
+              _cancelPidTestRequested) {
+            break;
+          }
+
+          try {
+            final response = await _request(
+              spec.command,
+              timeout: const Duration(seconds: 2),
+            );
+            if (connectionToken != _generation || !connected) break;
+            final reply = PidDecoder.replies(
+              response,
+              spec.code,
+            ).where((item) => item.ecu == ecu).firstOrNull;
+            final accumulator = _pidTestResults[spec.code]!;
+            if (reply == null) {
+              accumulator.failedSamples++;
+              _log(
+                'PID ${spec.hex}: ${PidDecoder.noData(response) ? 'nessun dato disponibile' : 'risposta non valida'}',
+              );
+            } else {
+              final value = PidDecoder.decodeStandard(spec.code, reply.bytes);
+              final observedAt = DateTime.now();
+              _integrateConsumptionUntil(observedAt);
+              accumulator.add(value);
+              if (spec.code == Pid.speed.code) _testSpeedKph = value;
+              if (spec.code == Pid.fuelRate.code) _testFuelRateLph = value;
+              _log(
+                'PID ${spec.hex} ${spec.label}: ${value.toStringAsFixed(2)} ${spec.unit}',
+              );
+            }
+          } on TimeoutException catch (e) {
+            _pidTestResults[spec.code]?.failedSamples++;
+            _log('Timeout PID ${spec.hex}: ${readableError(e)}');
+            throw ObdException(
+              'Timeout durante la lettura del PID ${spec.hex}. Il canale seriale va riconnesso.',
+            );
+          } on FormatException catch (e) {
+            _pidTestResults[spec.code]?.failedSamples++;
+            _log('Risposta PID ${spec.hex} non decodificabile: $e');
+          }
+          _update();
+        }
+      }
+
+      if (connectionToken == _generation && connected) {
+        _integrateConsumptionUntil(DateTime.now());
+        pidTestProgress = _cancelPidTestRequested ? pidTestProgress : 1;
+        final validCount = _pidTestResults.values.fold<int>(
+          0,
+          (sum, result) => sum + result.validSamples,
+        );
+        pidTestMessage = _cancelPidTestRequested
+            ? 'Test interrotto dopo ${pidTestElapsedSeconds}s · $validCount letture valide'
+            : 'Test completato · 30 s · $validCount letture valide';
+        _log(pidTestMessage!);
+        if (averageConsumptionLPer100Km != null) {
+          _log(
+            'Consumo medio stimato nel test: ${averageConsumptionLPer100Km!.toStringAsFixed(2)} l/100 km (${_testDistanceKm.toStringAsFixed(3)} km, ${_testFuelLiters.toStringAsFixed(4)} l)',
+          );
+        } else {
+          _log(
+            'Consumo medio in l/100 km non calcolabile: distanza rilevata inferiore a 5 m.',
+          );
+        }
+      }
+    } catch (e) {
+      if (connectionToken == _generation) {
+        error = readableError(e);
+        pidTestMessage = 'Test interrotto: ${readableError(e)}';
+        _log(pidTestMessage!);
+        await _disconnect(statusAfter: 'Collegamento da ripristinare');
+      }
+    } finally {
+      _pidTestTicker?.cancel();
+      _pidTestTicker = null;
+      clock.stop();
+      if (runToken == _pidTestRun) {
+        pidTestRunning = false;
+        busy = false;
+        _update();
+      }
+    }
+  }
+
+  void cancelPidTest() {
+    if (!pidTestRunning || _cancelPidTestRequested) return;
+    _cancelPidTestRequested = true;
+    pidTestMessage = 'Interruzione richiesta…';
+    _log('Interruzione test PID richiesta');
+    _update();
+  }
+
+  void _integrateConsumptionUntil(DateTime at) {
+    final previous = _lastConsumptionIntegration;
+    if (previous != null && _testSpeedKph != null && _testFuelRateLph != null) {
+      final seconds = at.difference(previous).inMicroseconds / 1000000;
+      if (seconds > 0 && seconds <= 4) {
+        final hours = seconds / 3600;
+        _testDistanceKm += _testSpeedKph! * hours;
+        _testFuelLiters += _testFuelRateLph! * hours;
+      }
+    }
+    _lastConsumptionIntegration = at;
   }
 
   Future<String> _request(String command, {Duration? timeout}) async {

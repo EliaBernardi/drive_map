@@ -225,6 +225,10 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
                     ),
                   ),
                 ],
+                if (check.connected || check.pidTestResults.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _pidTestPanel(context),
+                ],
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
@@ -302,6 +306,128 @@ class _AdapterCheckScreenState extends State<AdapterCheckScreen>
       if (pid.code == code) return 'PID $hex · ${pid.label}';
     }
     return 'PID $hex';
+  }
+
+  Widget _pidTestPanel(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Test dei parametri · 30 secondi',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Interroga in sequenza i PID principali, il livello carburante e il contachilometri. Il carburante è espresso in percentuale, non in litri. Avvia il test a veicolo fermo; non usare il telefono durante la guida.',
+          ),
+          if (check.pidTestRunning) ...[
+            const SizedBox(height: 16),
+            LinearProgressIndicator(value: check.pidTestProgress),
+          ],
+          if (check.pidTestMessage != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              check.pidTestRunning
+                  ? 'Test in corso · ${check.pidTestElapsedSeconds} / 30 s'
+                  : check.pidTestMessage!,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+          if (check.pidTestResults.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Text(
+              'Consumo medio stimato nel test',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              check.averageConsumptionLPer100Km == null
+                  ? '— L/100 km · distanza troppo breve o letture non disponibili'
+                  : '${check.averageConsumptionLPer100Km!.toStringAsFixed(1)} L/100 km',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            Text(
+              'Calcolato da portata carburante e velocità; non è una media storica. Distanza ${check.testDistanceKm.toStringAsFixed(3)} km · carburante stimato ${check.testFuelLiters.toStringAsFixed(4)} L.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = (constraints.maxWidth - 8) / 2;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final result in check.pidTestResults)
+                      SizedBox(
+                        width: width,
+                        child: Card(
+                          margin: EdgeInsets.zero,
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${result.label} · ${result.hex}',
+                                  style: Theme.of(context).textTheme.labelLarge,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${_testNumber(result.latest, result.code)}${result.latest == null ? '' : ' ${result.unit}'}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
+                                ),
+                                Text(
+                                  result.validSamples == 0
+                                      ? 'Nessun valore valido · ${result.failedSamples} risposte non valide'
+                                      : 'Media ${_testNumber(result.average, result.code)} ${result.unit} · min ${_testNumber(result.minimum, result.code)} · max ${_testNumber(result.maximum, result.code)} · ${result.validSamples} letture${result.failedSamples == 0 ? '' : ' · ${result.failedSamples} senza dato'}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ],
+          const SizedBox(height: 14),
+          if (check.pidTestRunning)
+            OutlinedButton.icon(
+              onPressed: check.cancelPidTest,
+              icon: const Icon(Icons.stop_circle_outlined),
+              label: const Text('Interrompi test'),
+            )
+          else if (check.connected)
+            FilledButton.icon(
+              onPressed: check.busy || check.testablePids.isEmpty
+                  ? null
+                  : check.runPidTest,
+              icon: const Icon(Icons.monitor_heart_outlined),
+              label: const Text('Avvia test PID 30 s'),
+            ),
+          if (check.connected && check.testablePids.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text('Nessun PID principale disponibile per il test.'),
+            ),
+        ],
+      ),
+    ),
+  );
+
+  String _testNumber(double? value, int code) {
+    if (value == null) return '—';
+    final decimals = code == 0x0C ? 0 : (code == 0xA6 ? 1 : 1);
+    return value.toStringAsFixed(decimals);
   }
 
   Future<void> _exportLogs(BuildContext context) async {

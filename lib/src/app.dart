@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers.dart';
 import 'presentation/components.dart';
-import 'presentation/adapter_check_screen.dart';
 import 'presentation/dashboard_screen.dart';
 import 'presentation/settings_screen.dart';
 import 'presentation/trips_screen.dart';
@@ -53,7 +52,7 @@ class DriveMapApp extends StatelessWidget {
         ),
       ),
     ),
-    home: const AdapterCheckScreen(),
+    home: const DriveMapShell(),
   );
 }
 

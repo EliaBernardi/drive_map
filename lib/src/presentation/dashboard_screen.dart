@@ -7,6 +7,7 @@ import '../domain/telemetry.dart';
 import '../features/obd/obd_session.dart';
 import '../features/obd/obd_transport.dart';
 import '../providers.dart';
+import 'adapter_check_screen.dart';
 import 'components.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -181,8 +182,8 @@ class DashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Text(
                   state.hasTrip
-                      ? 'Salvataggio locale automatico. Le pause e le disconnessioni restano separate nell’analisi.'
-                      : 'Collega l’adattatore, poi avvia la registrazione. Al termine troverai timeline, zone operative e score nell’archivio.',
+                      ? 'Salvataggio locale automatico. Se il collegamento cade, DriveMap prova a ripristinarlo; dopo i tentativi falliti mette in pausa la registrazione.'
+                      : 'Collega l’adattatore, poi avvia la registrazione. Tieni DriveMap in primo piano durante il viaggio: in background la raccolta si mette in pausa. I dati vengono salvati sul telefono e potrai esportarli in CSV.',
                   style: const TextStyle(color: DriveColors.muted, height: 1.5),
                 ),
                 const SizedBox(height: 20),
@@ -392,6 +393,18 @@ class DashboardScreen extends ConsumerWidget {
                 onTap: connecting || state.busy
                     ? null
                     : () => c.connect(device: device),
+              ),
+            if (!state.hasTrip && PlatformObdTransport.supported)
+              TextButton.icon(
+                onPressed: connecting || state.busy
+                    ? null
+                    : () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const AdapterCheckScreen(),
+                        ),
+                      ),
+                icon: const Icon(Icons.article_outlined, size: 18),
+                label: const Text('Diagnostica e log OBD'),
               ),
             if (connecting)
               TextButton(

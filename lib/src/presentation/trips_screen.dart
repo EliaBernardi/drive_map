@@ -387,7 +387,10 @@ class TripAnalysisScreen extends ConsumerWidget {
                 value: 'bundle',
                 child: Text('DriveMap · dati, raw e modello'),
               ),
-              PopupMenuItem(value: 'csv', child: Text('CSV · telemetria')),
+              PopupMenuItem(
+                value: 'csv',
+                child: Text('CSV · telemetria e orari PID'),
+              ),
               PopupMenuItem(
                 value: 'raw',
                 child: Text('CSV · risposte OBD raw'),
@@ -510,10 +513,17 @@ class TripAnalysisScreen extends ConsumerWidget {
       } else {
         content = CsvImporter.export(data.frames);
       }
+      final typeName = switch (type) {
+        'bundle' => 'dati',
+        'raw' => 'raw',
+        _ => 'telemetria',
+      };
+      final extension = type == 'bundle' ? 'json' : 'csv';
       final saved = await FilePicker.saveFile(
-        fileName: 'drivemap_${id}_$type.${type == 'bundle' ? 'json' : 'csv'}',
+        fileName:
+            'drivemap_${_fileTimestamp(data.trip.startedAt)}_$typeName.$extension',
         bytes: Uint8List.fromList(utf8.encode(content)),
-        mimeType: type == 'bundle' ? 'application/json' : 'text/csv',
+        mimeType: extension == 'json' ? 'application/json' : 'text/csv',
       );
       if (context.mounted && saved != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -523,6 +533,12 @@ class TripAnalysisScreen extends ConsumerWidget {
     } catch (error) {
       if (context.mounted) await showFailure(context, error);
     }
+  }
+
+  String _fileTimestamp(DateTime value) {
+    final time = value.toLocal();
+    String two(int part) => part.toString().padLeft(2, '0');
+    return '${time.year}${two(time.month)}${two(time.day)}_${two(time.hour)}${two(time.minute)}${two(time.second)}';
   }
 }
 

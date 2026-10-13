@@ -175,7 +175,9 @@ class DashboardController extends Notifier<DashboardState> {
   }
 
   Future<void> connect({ObdDevice? device, bool demo = false}) async {
-    if (state.busy || state.recording || (state.hasTrip && state.demo != demo)) {
+    if (state.busy ||
+        state.recording ||
+        (state.hasTrip && state.demo != demo)) {
       return;
     }
     state = state.copy(busy: true, clearError: true, clearFrame: true);
@@ -203,6 +205,9 @@ class DashboardController extends Notifier<DashboardState> {
             connection: connection,
             clearFrame: !connection.ready,
           );
+          if (connection.phase == ConnectionPhase.failed && state.recording) {
+            unawaited(_pauseAfterConnectionFailure());
+          }
         }),
       );
       _subscriptions.add(
@@ -238,6 +243,19 @@ class DashboardController extends Notifier<DashboardState> {
     await _demoTransport?.dispose();
     _demoTransport = null;
     _wasReady = false;
+  }
+
+  Future<void> _pauseAfterConnectionFailure() async {
+    while (ref.mounted && state.recording && state.busy) {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    if (!ref.mounted || !state.recording) return;
+    await pause();
+    if (ref.mounted && state.hasTrip && state.paused) {
+      state = state.copy(
+        error: 'Collegamento OBD perso dopo i tentativi di riconnessione. Il viaggio è in pausa: riconnetti l’adattatore e tocca Riprendi.',
+      );
+    }
   }
 
   Future<void> disconnect() async {
@@ -375,7 +393,7 @@ class DashboardController extends Notifier<DashboardState> {
         await _database!.setStatus(
           id,
           'completed',
-          end: data.frames.isEmpty ? data.trip.startedAt : data.frames.last.at,
+          end: DateTime.now().toUtc(),
         );
       });
       if (!ref.mounted) return;
