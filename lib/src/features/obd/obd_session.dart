@@ -210,7 +210,7 @@ class ObdSession {
     );
     _ecu = primary.ecu;
     final codes = PidDecoder.supported(primary.bytes, 0);
-    for (var base = 0x20; base <= 0x40 && codes.contains(base); base += 0x20) {
+    for (var base = 0x20; base <= 0xA0 && codes.contains(base); base += 0x20) {
       final response = await channel.request(
         '01${base.toRadixString(16).padLeft(2, '0').toUpperCase()}',
       );

@@ -54,6 +54,18 @@ class CsvPreview {
       Pid.fuelRate => ['fuelrate', 'fuel rate', 'engine fuel rate'],
       Pid.manifold => ['manifold', 'intake manifold absolute pressure'],
       Pid.voltage => ['voltage', 'control module voltage'],
+      Pid.fuelLevel => ['fuellevel', 'fuel level', 'fuel tank level'],
+      Pid.actualTorque => [
+        'actualtorque',
+        'actual torque',
+        'actual engine torque',
+      ],
+      Pid.referenceTorque => [
+        'referencetorque',
+        'reference torque',
+        'engine reference torque',
+      ],
+      Pid.odometer => ['odometer', 'total odometer'],
     };
     return headers.indexWhere((h) {
       final normalized = h

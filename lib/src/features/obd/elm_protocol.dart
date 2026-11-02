@@ -153,7 +153,11 @@ abstract final class PidDecoder {
   }
 
   static double decode(Pid pid, List<int> bytes) {
-    final count = {Pid.rpm, Pid.voltage, Pid.fuelRate}.contains(pid) ? 2 : 1;
+    final count = switch (pid) {
+      Pid.rpm || Pid.voltage || Pid.fuelRate || Pid.referenceTorque => 2,
+      Pid.odometer => 4,
+      _ => 1,
+    };
     if (bytes.length < count) {
       throw FormatException('Risposta ${pid.command} incompleta');
     }
@@ -165,43 +169,22 @@ abstract final class PidDecoder {
       Pid.load || Pid.throttle => a * 100 / 255,
       Pid.voltage => (a * 256 + bytes[1]) / 1000,
       Pid.fuelRate => (a * 256 + bytes[1]) / 20,
+      Pid.fuelLevel => a * 100 / 255,
+      Pid.actualTorque => a - 125.0,
+      Pid.referenceTorque => a * 256 + bytes[1].toDouble(),
+      Pid.odometer =>
+        ((a << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]) / 10,
     };
   }
 
-  /// Decodes the app's selected Mode 01 values, including values that are
-  /// useful for the connection check but are not part of trip telemetry.
+  /// Decodes the selected Mode 01 values used by diagnostics and trips.
   static double decodeStandard(int code, List<int> bytes) {
     for (final pid in Pid.values) {
       if (pid.code == code) return decode(pid, bytes);
     }
-    switch (code) {
-      case 0x2F: // Fuel tank level, % of usable range.
-        if (bytes.isEmpty) {
-          throw const FormatException('Risposta PID 012F incompleta');
-        }
-        return bytes[0] * 100 / 255;
-      case 0x62: // Actual engine percent torque.
-        if (bytes.isEmpty) {
-          throw const FormatException('Risposta PID 0162 incompleta');
-        }
-        return bytes[0] - 125.0;
-      case 0x63: // Engine reference torque, Nm.
-        if (bytes.length < 2) {
-          throw const FormatException('Risposta PID 0163 incompleta');
-        }
-        return bytes[0] * 256 + bytes[1].toDouble();
-      case 0xA6: // Odometer, 0.1 km per bit.
-        if (bytes.length < 4) {
-          throw const FormatException('Risposta PID 01A6 incompleta');
-        }
-        final value =
-            (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
-        return value / 10;
-      default:
-        throw FormatException(
-          'PID standard non decodificato: 0x${code.toRadixString(16)}',
-        );
-    }
+    throw FormatException(
+      'PID standard non decodificato: 0x${code.toRadixString(16)}',
+    );
   }
 
   static bool noData(String response) =>

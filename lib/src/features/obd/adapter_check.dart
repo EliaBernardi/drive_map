@@ -75,10 +75,6 @@ class _PidTestAccumulator {
 
 final List<PidTestSpec> _pidTestSpecs = List.unmodifiable([
   for (final pid in Pid.values) PidTestSpec(pid.code, pid.label, pid.unit),
-  const PidTestSpec(0x2F, 'Livello carburante', '%'),
-  const PidTestSpec(0x62, 'Coppia motore effettiva', '%'),
-  const PidTestSpec(0x63, 'Coppia motore di riferimento', 'Nm'),
-  const PidTestSpec(0xA6, 'Contachilometri totale', 'km'),
 ]);
 
 /// Bluetooth Classic discovery, pairing, RFCOMM and one ELM identity request.

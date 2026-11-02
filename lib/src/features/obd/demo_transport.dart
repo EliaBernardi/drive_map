@@ -40,7 +40,14 @@ class DemoTransport implements ObdTransport {
       final code = int.parse(command.substring(2), radix: 16);
       final payload = <int>[];
       if (code % 32 == 0) {
-        final supported = {...Pid.values.map((e) => e.code), 0x20, 0x40};
+        final supported = {
+          ...Pid.values.map((e) => e.code),
+          0x20,
+          0x40,
+          0x60,
+          0x80,
+          0xA0,
+        };
         var bits = 0;
         for (var i = 1; i <= 32; i++) {
           if (supported.contains(code + i)) bits |= 1 << (32 - i);
@@ -67,13 +74,25 @@ class DemoTransport implements ObdTransport {
           0x11 => ((15 + load / 2) * 255 / 100).round(),
           0x42 => 14200,
           0x5E => ((1 + speed / 18 + load / 30) * 20).round(),
+          0x2F => 102,
+          0x62 => 125 + (load / 2).round(),
+          0x63 => 200,
+          0xA6 => 454250 + (speed * t / 360).round(),
           _ => -1,
         };
         if (value < 0) {
           _emit('NO DATA\r>');
           return;
         }
-        if ({0x0C, 0x42, 0x5E}.contains(code)) payload.add(value >> 8);
+        if (code == 0xA6) {
+          payload.addAll([
+            (value >> 24) & 255,
+            (value >> 16) & 255,
+            (value >> 8) & 255,
+          ]);
+        } else if ({0x0C, 0x42, 0x5E, 0x63}.contains(code)) {
+          payload.add(value >> 8);
+        }
         payload.add(value & 255);
       }
       final data = [

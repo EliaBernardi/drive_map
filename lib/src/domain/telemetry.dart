@@ -6,7 +6,11 @@ enum Pid {
   speed(0x0D, 'Velocità', 'km/h', 250),
   throttle(0x11, 'Farfalla', '%', 500),
   voltage(0x42, 'Tensione centralina', 'V', 5000),
-  fuelRate(0x5E, 'Flusso carburante', 'l/h', 500);
+  fuelRate(0x5E, 'Flusso carburante', 'l/h', 500),
+  fuelLevel(0x2F, 'Livello carburante', '%', 30000),
+  actualTorque(0x62, 'Coppia motore effettiva', '%', 1000),
+  referenceTorque(0x63, 'Coppia motore di riferimento', 'Nm', 30000),
+  odometer(0xA6, 'Contachilometri totale', 'km', 10000);
 
   const Pid(this.code, this.label, this.unit, this.intervalMs);
   final int code;

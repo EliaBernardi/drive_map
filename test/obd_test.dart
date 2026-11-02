@@ -69,6 +69,14 @@ void main() {
     expect(PidDecoder.decode(Pid.fuelRate, [0, 100]), 5);
     expect(PidDecoder.decode(Pid.coolant, [130]), 90);
     expect(PidDecoder.decode(Pid.voltage, [0x36, 0xB0]), 14);
+    expect(PidDecoder.decode(Pid.fuelLevel, [0x3E]), closeTo(24.31, .01));
+    expect(PidDecoder.decode(Pid.actualTorque, [0x84]), 7);
+    expect(PidDecoder.decode(Pid.referenceTorque, [0x00, 0xC8]), 200);
+    expect(PidDecoder.decode(Pid.odometer, [0x00, 0x06, 0xEE, 0x69]), 45424.9);
+    expect(
+      () => PidDecoder.decode(Pid.odometer, [0x00, 0x06]),
+      throwsFormatException,
+    );
   });
   test(
     'Timeout poisons channel and concurrent requests are rejected',
@@ -151,11 +159,16 @@ void main() {
           .firstWhere((s) => s.ready)
           .timeout(const Duration(seconds: 5));
       final frame = session.frames
-          .firstWhere((f) => f[Pid.rpm] != null)
+          .firstWhere((f) => f[Pid.rpm] != null && f[Pid.odometer] != null)
           .timeout(const Duration(seconds: 5));
       await session.connect('demo');
       expect((await ready).supported, Pid.values.toSet());
-      expect((await frame)[Pid.rpm], greaterThan(0));
+      final observed = await frame;
+      expect(observed[Pid.rpm], greaterThan(0));
+      expect(observed[Pid.odometer], greaterThan(0));
+      expect(observed[Pid.actualTorque], isNotNull);
+      expect(observed[Pid.referenceTorque], 200);
+      expect(observed[Pid.fuelLevel], isNotNull);
       await session.dispose();
       await transport.dispose();
     },

@@ -389,11 +389,14 @@ abstract final class TripAnalyzer {
     final (min, max) = switch (pid) {
       Pid.rpm => (0, 16383.75),
       Pid.speed => (0, 255),
-      Pid.load || Pid.throttle => (0, 100),
+      Pid.load || Pid.throttle || Pid.fuelLevel => (0, 100),
       Pid.coolant => (-40, 215),
       Pid.manifold => (0, 255),
       Pid.voltage => (0, 65.535),
       Pid.fuelRate => (0, 3276.75),
+      Pid.actualTorque => (-125, 130),
+      Pid.referenceTorque => (0, 65535),
+      Pid.odometer => (0, 429496729.5),
     };
     return value >= min && value <= max;
   }
