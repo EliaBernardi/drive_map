@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'providers.dart';
 import 'localization/locale_controller.dart';
 import 'localization/localization.dart';
@@ -22,7 +23,10 @@ class DriveMapApp extends ConsumerWidget {
     theme: AppTheme.light,
     locale: ref.watch(localeProvider).asData?.value ?? const Locale('it'),
     supportedLocales: AppLocalizations.supportedLocales,
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: [
+      AppLocalizations.delegate,
+      ...GlobalMaterialLocalizations.delegates,
+    ],
     home: const DriveMapShell(),
   );
 }
