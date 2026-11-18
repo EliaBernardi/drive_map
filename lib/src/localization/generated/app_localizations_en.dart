@@ -226,25 +226,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSubtitle =>
-      'Clear rules and adjustable weights, with a transparent model.';
+      'Explicit rules for driving behavior; fuel consumption is reported separately.';
 
   @override
-  String get heuristicModel => 'Heuristic model · rules-1.0.0';
+  String get heuristicModel => 'Heuristic model · rules-2.0.0';
 
   @override
   String get settingsNotice =>
-      'Settings apply to new trips. Each trip keeps its own configuration so its score can be recalculated reproducibly.';
+      'These parameters apply to every trip, including saved trips. Changing them recalculates scores across the archive using the same rules.';
 
   @override
   String get loadNotice =>
-      'Calculated load is a load proxy. The relative index represents how favorable the zones are under these rules; it does not measure torque, power or thermal efficiency.';
+      'Calculated load is a load proxy. The favorable-zone index follows heuristic thresholds; it does not measure efficiency, torque or power. Trip fuel consumption is a separate metric.';
 
   @override
   String get componentWeights => 'Each component’s weight';
 
   @override
   String get weightsNotice =>
-      'Weights are normalized across available components. Defaults: 0.40 / 0.25 / 0.20 / 0.15.';
+      'The score combines operating zones, smoothness and warm-up. Weights are normalized when a component lacks data. Defaults: 0.40 / 0.25 / 0.20.';
 
   @override
   String get operatingZones => 'Operating zones';
@@ -256,14 +256,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get warmup => 'Warm-up';
 
   @override
-  String get relativeEconomy => 'Relative consumption';
-
-  @override
   String get engineZones => 'Engine zones';
 
   @override
   String get engineZonesNotice =>
-      'Favorable: RPM between the thresholds and load between 20% and the upper threshold. Unfavorable: high RPM, or low RPM with high load.';
+      'Favorable zone: RPM between the thresholds and load between 20% and the upper threshold. Penalty is 0.5 elsewhere, and 1 at high RPM or low RPM with high load.';
 
   @override
   String get lowRpm => 'Minimum favorable speed · rpm';
@@ -300,16 +297,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hardBrakingThreshold => 'Hard braking · m/s²';
 
   @override
-  String get economyBaseline => 'Consumption baseline';
-
-  @override
-  String get baselineNotice =>
-      'Set to 0 to exclude the economy component. A baseline must come from trips with comparable routes, temperatures and traffic. Fuel quantity alone does not measure efficiency.';
-
-  @override
-  String get baselineConsumption => 'Reference consumption · l/100 km';
-
-  @override
   String get saving => 'Saving…';
 
   @override
@@ -320,7 +307,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get studyProfile =>
-      'Study vehicle: Ford Fiesta 2021 · OBDLink MX+\nMobile acquisition in the foreground. Android: RFCOMM. iOS: ExternalAccessory, subject to manufacturer configuration and approval. Desktop: import and analysis.\nThe app offers no ECU writing or fault clearing.';
+      'Study vehicle: Ford Fiesta 2021 · OBDLink MX+\nForeground Android acquisition over Bluetooth RFCOMM. The app reads OBD data and does not write to the ECU or clear fault codes.';
 
   @override
   String get modelSaved => 'Model saved for future trips.';
@@ -453,7 +440,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get comparisonNotice =>
-      'Compare similar routes and conditions. Traffic, temperature and gradients can change the results.';
+      'Scores use the same parameters. Still compare similar routes and conditions: traffic, temperature and gradients can change results. Δ is Trip B minus Trip A.';
 
   @override
   String get differentModels =>
@@ -490,6 +477,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mappedTime => 'Mapped time';
 
   @override
+  String get comparisonDuration => 'Observed duration';
+
+  @override
+  String get comparisonFuelLiters => 'Estimated fuel · L';
+
+  @override
+  String get comparisonAverageSpeed => 'Valid mean speed · km/h';
+
+  @override
+  String get comparisonEventRate => 'Harsh events · per minute';
+
+  @override
+  String get comparisonMapCoverage => 'Map coverage · %';
+
+  @override
+  String get comparisonSpeedCoverage => 'Speed coverage · %';
+
+  @override
+  String get comparisonFuelCoverage => 'Fuel-rate coverage · %';
+
+  @override
+  String get comparisonDelta => 'Δ (B − A)';
+
+  @override
+  String get comparisonMetrics => 'Metric summary';
+
+  @override
+  String get comparisonScoreBreakdown => 'Score component comparison';
+
+  @override
+  String get comparisonMaps => 'RPM–load distribution';
+
+  @override
+  String comparisonHigherScore(String name, String score) =>
+      'Higher score: $name · $score/100';
+
+  @override
+  String get comparisonSimilarScores => 'Scores are effectively tied';
+
+  @override
+  String get comparisonDifferentCoverage =>
+      'The scores use different components because some OBD data is missing from one trip; treat the total comparison as indicative.';
+
+  @override
   String get mapCsvColumns => 'Map CSV columns';
 
   @override
@@ -516,11 +547,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notPresent => 'Not present';
 
   @override
-  String get engineMap => 'Your engine map';
+  String get engineMap => 'RPM–load map';
 
   @override
   String get engineMapSubtitle =>
-      'Where the engine worked and its observed cost.';
+      'Groups trip samples by engine speed and load: each cell covers 500 rpm and 10% load.';
 
   @override
   String get occupancy => 'Time spent';
@@ -529,7 +560,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fuel => 'Fuel';
 
   @override
-  String get relativeIndex => 'Relative index';
+  String get zoneFavorability => 'Favorable zones';
 
   @override
   String get penalty => 'Penalty';
@@ -545,14 +576,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fuelLegend => 'Mean flow in l/h · available data only';
 
   @override
-  String get relativeLegend => '0 to 100 · favorability under the rules';
+  String get favorabilityLegend => '0 to 100 · favorability under the rules';
 
   @override
   String get penaltyLegend => '0 to 1 · mean zone cost';
 
   @override
   String get mapNotice =>
-      'Map of observed conditions. The relative index describes the model rules: it does not measure thermal efficiency or BSFC.';
+      'This shows the distribution of readings observed during the trip, not the ECU map or a measure of power or efficiency. Select time, fuel flow, estimated favorability, or mean penalty to change the colors.';
 
   @override
   String get loadAxis => 'Load %';
@@ -800,16 +831,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'OBD connection lost after reconnection attempts. The trip is paused: reconnect the adapter and tap Resume.';
 
   @override
-  String get zoneReason =>
-      'Time weighted across RPM–load zones: cost 0, 0.5 or 1.';
+  String zoneReason(String lowRpm, String highRpm, String highLoad) =>
+      'Favorable zone: $lowRpm ≤ RPM < $highRpm and 20% ≤ load < $highLoad%; cost 0.5 elsewhere and 1 at high RPM or low RPM with high load.';
 
   @override
-  String get smoothReason =>
-      '−5 points per event per minute; acceleration derived from OBD speed.';
-
-  @override
-  String get economyExcluded =>
-      'Excluded: configure a baseline from comparable trips for this vehicle.';
+  String smoothReason(String acceleration, String braking) =>
+      '−5 points per event per minute; acceleration derived from OBD speed. Thresholds: +$acceleration and −$braking m/s².';
 
   @override
   String get scoreRequiresData =>
@@ -820,7 +847,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scoreWeightsNormalized =>
-      'Weights of available components are normalized. ';
+      'Components with less than 5 seconds of valid data are excluded and remaining weights are normalized. ';
 
   @override
   String get saveSettingsFailed => 'Could not save settings.';
@@ -830,7 +857,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invalidSettings =>
-      'Check weights, thresholds and baseline: the values are invalid.';
+      'Check the weights and thresholds: the values are invalid.';
 
   @override
   String get csvRequiresRows =>
@@ -1201,28 +1228,38 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String economyReason(String baseline) {
-    return 'Ratio against the $baseline l/100 km baseline; requires ≥80% coverage and ≥100 m distance.';
+  String scoreIntro(String score, String components) {
+    return 'Score $score/100, a weighted average of $components driving components. ';
   }
 
   @override
-  String scoreIntro(String score, String components) {
-    return 'Score $score/100 across $components available components. ';
+  String scoreFormula(String formula) {
+    return 'Weighted contribution: $formula. ';
+  }
+
+  @override
+  String scoreContribution(
+    String name,
+    String value,
+    String weight,
+    String points,
+  ) {
+    return '$name $value/100 × $weight% = $points points';
+  }
+
+  @override
+  String scoreEventsDetailed(String accelerations, String brakings) {
+    return 'Events included: $accelerations hard accelerations and $brakings hard brakes, derived from OBD speed. ';
   }
 
   @override
   String scoreMapPortion(String percent) {
-    return '$percent% of mapped time in favorable zones under the configured rules. ';
-  }
-
-  @override
-  String scoreEventCount(String count) {
-    return '$count acceleration or braking events. ';
+    return '$percent% of mapped time fell within zones classified as favorable by the configured thresholds. ';
   }
 
   @override
   String scoreMapCoverage(String percent) {
-    return 'Map coverage: $percent%. Heuristic model, to be calibrated on real trips.';
+    return 'RPM–load coverage: $percent%. Consumption is reported separately and does not affect this heuristic score.';
   }
 
   @override

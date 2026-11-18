@@ -108,7 +108,6 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
               'zoneWeight': context.l10n.operatingZones,
               'smoothWeight': context.l10n.smoothness,
               'warmupWeight': context.l10n.warmup,
-              'economyWeight': context.l10n.relativeEconomy,
             }),
             const SizedBox(height: 20),
             _group(context.l10n.engineZones, context.l10n.engineZonesNotice, {
@@ -127,10 +126,6 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 'hardBraking': context.l10n.hardBrakingThreshold,
               },
             ),
-            const SizedBox(height: 20),
-            _group(context.l10n.economyBaseline, context.l10n.baselineNotice, {
-              'baselineConsumption': context.l10n.baselineConsumption,
-            }),
             const SizedBox(height: 24),
             Wrap(
               spacing: 12,
@@ -209,7 +204,6 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
         zoneWeight: value('zoneWeight'),
         smoothWeight: value('smoothWeight'),
         warmupWeight: value('warmupWeight'),
-        economyWeight: value('economyWeight'),
         lowRpm: value('lowRpm'),
         highRpm: value('highRpm'),
         highLoad: value('highLoad'),
@@ -217,7 +211,6 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
         warmTemperature: value('warmTemperature'),
         hardAcceleration: value('hardAcceleration'),
         hardBraking: value('hardBraking'),
-        baselineConsumption: value('baselineConsumption'),
       );
       await ref.read(settingsProvider.notifier).save(config);
       if (mounted) {

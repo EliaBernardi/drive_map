@@ -29,7 +29,8 @@ void main() {
     expect(a.consumption, closeTo(10, 1e-9));
     expect(a.cells.fold(0.0, (s, c) => s + c.seconds), a.validMapSeconds);
     expect(a.score, closeTo(100, 1e-9));
-    expect(a.parts.last.value, isNull);
+    expect(a.parts, hasLength(3));
+    expect(a.parts.every((part) => part.value != null), isTrue);
   });
   test('100 percent load lands in top cell; adverse zones lower score', () {
     final good = TripAnalyzer.analyze(trip(), const ScoreConfig());
@@ -41,14 +42,15 @@ void main() {
     expect(bad.score!, lessThan(good.score!));
     expect(bad.score!, inInclusiveRange(0, 100));
   });
-  test('Missing data is unavailable, never zero or perfect score', () {
+  test('Fuel stays a separate metric when its samples are unavailable', () {
     final withoutFuel = TripAnalyzer.analyze(
       trip(fuel: false),
-      const ScoreConfig(baselineConsumption: 6),
+      const ScoreConfig(),
     );
     expect(withoutFuel.fuelLiters, isNull);
     expect(withoutFuel.consumption, isNull);
-    expect(withoutFuel.parts.last.value, isNull);
+    expect(withoutFuel.score, isNotNull);
+    expect(withoutFuel.parts, hasLength(3));
     expect(TripAnalyzer.analyze([], const ScoreConfig()).score, isNull);
   });
   test('Pauses and long gaps are excluded from integrations', () {
@@ -130,7 +132,10 @@ void main() {
     );
     expect(result.frames.length, frames.length);
     expect(result.frames.first.toJson(), frames.first.toJson());
-    expect(TripAnalyzer.analyze(result.frames, const ScoreConfig()).score, closeTo(100, 1e-9));
+    expect(
+      TripAnalyzer.analyze(result.frames, const ScoreConfig()).score,
+      closeTo(100, 1e-9),
+    );
   });
   test(
     'CSV unknown units and duplicate timestamps are not silently trusted',

@@ -69,18 +69,17 @@
   "languageLoadFailed": "Could not load the saved language.",
   "restoreModel": "Restore default model",
   "settingsTitle": "A score you can understand.",
-  "settingsSubtitle": "Clear rules and adjustable weights, with a transparent model.",
-  "heuristicModel": "Heuristic model · rules-1.0.0",
-  "settingsNotice": "Settings apply to new trips. Each trip keeps its own configuration so its score can be recalculated reproducibly.",
-  "loadNotice": "Calculated load is a load proxy. The relative index represents how favorable the zones are under these rules; it does not measure torque, power or thermal efficiency.",
+  "settingsSubtitle": "Explicit rules for driving behavior; fuel consumption is reported separately.",
+  "heuristicModel": "Heuristic model · rules-2.0.0",
+  "settingsNotice": "These parameters apply to every trip, including saved trips. Changing them recalculates scores across the archive using the same rules.",
+  "loadNotice": "Calculated load is a load proxy. The favorable-zone index follows heuristic thresholds; it does not measure efficiency, torque or power. Trip fuel consumption is a separate metric.",
   "componentWeights": "Each component’s weight",
-  "weightsNotice": "Weights are normalized across available components. Defaults: 0.40 / 0.25 / 0.20 / 0.15.",
+  "weightsNotice": "The score combines operating zones, smoothness and warm-up. Weights are normalized when a component lacks data. Defaults: 0.40 / 0.25 / 0.20.",
   "operatingZones": "Operating zones",
   "smoothness": "Smoothness",
   "warmup": "Warm-up",
-  "relativeEconomy": "Relative consumption",
   "engineZones": "Engine zones",
-  "engineZonesNotice": "Favorable: RPM between the thresholds and load between 20% and the upper threshold. Unfavorable: high RPM, or low RPM with high load.",
+  "engineZonesNotice": "Favorable zone: RPM between the thresholds and load between 20% and the upper threshold. Penalty is 0.5 elsewhere, and 1 at high RPM or low RPM with high load.",
   "lowRpm": "Minimum favorable speed · rpm",
   "highRpm": "High engine speed threshold · rpm",
   "highLoad": "High load threshold · %",
@@ -92,13 +91,10 @@
   "hardAccelerationEvent": "Hard acceleration",
   "hardBrakingEvent": "Hard braking",
   "hardBrakingThreshold": "Hard braking · m/s²",
-  "economyBaseline": "Consumption baseline",
-  "baselineNotice": "Set to 0 to exclude the economy component. A baseline must come from trips with comparable routes, temperatures and traffic. Fuel quantity alone does not measure efficiency.",
-  "baselineConsumption": "Reference consumption · l/100 km",
   "saving": "Saving…",
   "saveModel": "Save model",
   "defaults": "Defaults",
-  "studyProfile": "Study vehicle: Ford Fiesta 2021 · OBDLink MX+\nMobile acquisition in the foreground. Android: RFCOMM. iOS: ExternalAccessory, subject to manufacturer configuration and approval. Desktop: import and analysis.\nThe app offers no ECU writing or fault clearing.",
+  "studyProfile": "Study vehicle: Ford Fiesta 2021 · OBDLink MX+\nForeground Android acquisition over Bluetooth RFCOMM. The app reads OBD data and does not write to the ECU or clear fault codes.",
   "modelSaved": "Model saved for future trips.",
   "tripsTitle": "Every trip has a story.",
   "tripsSubtitle": "Find your trips, explore the engine and compare results.",
@@ -141,7 +137,7 @@
   "explainable": "Explainable · v1",
   "notCalculated": "Not calculated",
   "compareTrips": "Two trips, compared",
-  "comparisonNotice": "Compare similar routes and conditions. Traffic, temperature and gradients can change the results.",
+  "comparisonNotice": "Scores use the same parameters. Still compare similar routes and conditions: traffic, temperature and gradients can change results. Δ is Trip B minus Trip A.",
   "differentModels": "Different models: scores cannot be compared directly",
   "differentSources": "Different data sources",
   "metric": "Metric",
@@ -153,6 +149,20 @@
   "favorableZones": "Favorable zones",
   "drivingEvents": "Driving events",
   "mappedTime": "Mapped time",
+  "comparisonDuration": "Observed duration",
+  "comparisonFuelLiters": "Estimated fuel · L",
+  "comparisonAverageSpeed": "Valid mean speed · km/h",
+  "comparisonEventRate": "Harsh events · per minute",
+  "comparisonMapCoverage": "Map coverage · %",
+  "comparisonSpeedCoverage": "Speed coverage · %",
+  "comparisonFuelCoverage": "Fuel-rate coverage · %",
+  "comparisonDelta": "Δ (B − A)",
+  "comparisonMetrics": "Metric summary",
+  "comparisonScoreBreakdown": "Score component comparison",
+  "comparisonMaps": "RPM–load distribution",
+  "comparisonHigherScore": "Higher score: {name} · {score}/100",
+  "comparisonSimilarScores": "Scores are effectively tied",
+  "comparisonDifferentCoverage": "The scores use different components because some OBD data is missing from one trip; treat the total comparison as indicative.",
   "mapCsvColumns": "Map CSV columns",
   "time": "Time",
   "elapsedSeconds": "Time in seconds from start",
@@ -161,18 +171,18 @@
   "invalidOrigin": "Enter an ISO trip start with a time zone, e.g. 2026-10-01T10:00:00+02:00.",
   "importTrip": "Import trip",
   "notPresent": "Not present",
-  "engineMap": "Your engine map",
-  "engineMapSubtitle": "Where the engine worked and its observed cost.",
+  "engineMap": "RPM–load map",
+  "engineMapSubtitle": "Groups trip samples by engine speed and load: each cell covers 500 rpm and 10% load.",
   "occupancy": "Time spent",
   "fuel": "Fuel",
-  "relativeIndex": "Relative index",
+  "zoneFavorability": "Favorable zones",
   "penalty": "Penalty",
   "mapRequiresData": "Valid RPM and calculated load readings\nare needed to build the map.",
   "occupancyLegend": "Less to more time · 500 rpm × 10% cells",
   "fuelLegend": "Mean flow in l/h · available data only",
-  "relativeLegend": "0 to 100 · favorability under the rules",
+  "favorabilityLegend": "0 to 100 · favorability under the rules",
   "penaltyLegend": "0 to 1 · mean zone cost",
-  "mapNotice": "Map of observed conditions. The relative index describes the model rules: it does not measure thermal efficiency or BSFC.",
+  "mapNotice": "This shows the distribution of readings observed during the trip, not the ECU map or a measure of power or efficiency. Select time, fuel flow, estimated favorability, or mean penalty to change the colors.",
   "loadAxis": "Load %",
   "rpmAxis": "Engine speed · rpm",
   "timelineTitle": "Your trip, moment by moment",
@@ -251,15 +261,22 @@
   "simulator": "OBD simulator",
   "demoTrip": "Demo trip",
   "linkLostTripPaused": "OBD connection lost after reconnection attempts. The trip is paused: reconnect the adapter and tap Resume.",
-  "zoneReason": "Time weighted across RPM–load zones: cost 0, 0.5 or 1.",
-  "smoothReason": "−5 points per event per minute; acceleration derived from OBD speed.",
-  "economyExcluded": "Excluded: configure a baseline from comparable trips for this vehicle.",
+  "zoneReason": "Favorable zone: {lowRpm} ≤ RPM < {highRpm} and 20% ≤ load < {highLoad}%; cost 0.5 elsewhere and 1 at high RPM or low RPM with high load.",
+  "@zoneReason": { "placeholders": { "lowRpm": { "type": "String" }, "highRpm": { "type": "String" }, "highLoad": { "type": "String" } } },
+  "smoothReason": "−5 points per event per minute; acceleration derived from OBD speed. Thresholds: +{acceleration} and −{braking} m/s².",
+  "@smoothReason": { "placeholders": { "acceleration": { "type": "String" }, "braking": { "type": "String" } } },
   "scoreRequiresData": "At least 5 seconds of valid data are needed to calculate score components.",
   "scoreNoMap": "Map unavailable: RPM or load missing. ",
-  "scoreWeightsNormalized": "Weights of available components are normalized. ",
+  "scoreWeightsNormalized": "Components with less than 5 seconds of valid data are excluded and remaining weights are normalized. ",
+  "scoreFormula": "Weighted contribution: {formula}. ",
+  "@scoreFormula": { "placeholders": { "formula": { "type": "String" } } },
+  "scoreContribution": "{name} {value}/100 × {weight}% = {points} points",
+  "@scoreContribution": { "placeholders": { "name": { "type": "String" }, "value": { "type": "String" }, "weight": { "type": "String" }, "points": { "type": "String" } } },
+  "scoreEventsDetailed": "Events included: {accelerations} hard accelerations and {brakings} hard brakes, derived from OBD speed. ",
+  "@scoreEventsDetailed": { "placeholders": { "accelerations": { "type": "String" }, "brakings": { "type": "String" } } },
   "saveSettingsFailed": "Could not save settings.",
   "finiteParameters": "Parameters must be finite numbers.",
-  "invalidSettings": "Check weights, thresholds and baseline: the values are invalid.",
+  "invalidSettings": "Check the weights and thresholds: the values are invalid.",
   "csvRequiresRows": "The CSV must contain a header and at least one row.",
   "csvRowLimit": "Import limit: 200,000 rows per trip.",
   "selectTimeColumn": "Select the time column.",
@@ -711,15 +728,7 @@
       }
     }
   },
-  "economyReason": "Ratio against the {baseline} l/100 km baseline; requires ≥80% coverage and ≥100 m distance.",
-  "@economyReason": {
-    "placeholders": {
-      "baseline": {
-        "type": "String"
-      }
-    }
-  },
-  "scoreIntro": "Score {score}/100 across {components} available components. ",
+  "scoreIntro": "Score {score}/100, a weighted average of {components} driving components. ",
   "@scoreIntro": {
     "placeholders": {
       "score": {
@@ -730,7 +739,7 @@
       }
     }
   },
-  "scoreMapPortion": "{percent}% of mapped time in favorable zones under the configured rules. ",
+  "scoreMapPortion": "{percent}% of mapped time fell within zones classified as favorable by the configured thresholds. ",
   "@scoreMapPortion": {
     "placeholders": {
       "percent": {
@@ -738,15 +747,7 @@
       }
     }
   },
-  "scoreEventCount": "{count} acceleration or braking events. ",
-  "@scoreEventCount": {
-    "placeholders": {
-      "count": {
-        "type": "String"
-      }
-    }
-  },
-  "scoreMapCoverage": "Map coverage: {percent}%. Heuristic model, to be calibrated on real trips.",
+  "scoreMapCoverage": "RPM–load coverage: {percent}%. Consumption is reported separately and does not affect this heuristic score.",
   "@scoreMapCoverage": {
     "placeholders": {
       "percent": {

@@ -226,25 +226,25 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settingsSubtitle =>
-      'Regole esplicite, pesi modificabili e nessuna scatola nera.';
+      'Regole esplicite per valutare il comportamento di guida; il consumo è mostrato separatamente.';
 
   @override
-  String get heuristicModel => 'Modello euristico · rules-1.0.0';
+  String get heuristicModel => 'Modello euristico · rules-2.0.0';
 
   @override
   String get settingsNotice =>
-      'Le impostazioni si applicano ai nuovi viaggi. Ogni viaggio conserva la propria configurazione, così lo score può essere ricalcolato in modo riproducibile.';
+      'Questi parametri si applicano a tutti i viaggi, anche a quelli già salvati. Modificandoli, lo score viene ricalcolato con le stesse regole per l’intero archivio.';
 
   @override
   String get loadNotice =>
-      'Calculated load è un proxy del carico. L’indice relativo rappresenta la favorevolezza delle zone secondo queste regole; non è una misura di coppia, potenza o rendimento termico.';
+      'Calculated load è un proxy del carico. L’indice delle zone favorevoli segue soglie euristiche: non misura efficienza, coppia o potenza. Il consumo del viaggio resta una metrica separata.';
 
   @override
   String get componentWeights => 'Il peso di ogni componente';
 
   @override
   String get weightsNotice =>
-      'I pesi vengono rinormalizzati sulle componenti disponibili. Valori iniziali: 0,40 / 0,25 / 0,20 / 0,15.';
+      'Lo score combina zone operative, regolarità e riscaldamento. I pesi sono rinormalizzati se mancano dati per una componente. Valori iniziali: 0,40 / 0,25 / 0,20.';
 
   @override
   String get operatingZones => 'Zone operative';
@@ -256,14 +256,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get warmup => 'Riscaldamento';
 
   @override
-  String get relativeEconomy => 'Consumo relativo';
-
-  @override
   String get engineZones => 'Le zone del motore';
 
   @override
   String get engineZonesNotice =>
-      'Favorevole: regime tra le soglie e carico tra 20% e soglia alta. Sfavorevole: alto regime, oppure basso regime con carico elevato.';
+      'Zona favorevole: regime tra le soglie e carico tra 20% e soglia alta. Penalità 0,5 negli altri casi; 1 ad alto regime o a basso regime con carico elevato.';
 
   @override
   String get lowRpm => 'Regime minimo favorevole · rpm';
@@ -300,16 +297,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get hardBrakingThreshold => 'Frenata brusca · m/s²';
 
   @override
-  String get economyBaseline => 'Baseline di consumo';
-
-  @override
-  String get baselineNotice =>
-      'Imposta 0 per escludere la componente economy. Una baseline deve provenire da viaggi comparabili per percorso, temperatura e traffico. La sola quantità di carburante non misura l’efficienza.';
-
-  @override
-  String get baselineConsumption => 'Consumo di riferimento · l/100 km';
-
-  @override
   String get saving => 'Salvataggio…';
 
   @override
@@ -320,7 +307,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get studyProfile =>
-      'Profilo di studio: Ford Fiesta 2021 · OBDLink MX+\nAcquisizione mobile in primo piano. Android: RFCOMM. iOS: ExternalAccessory, previa configurazione e abilitazione del produttore. Desktop: importazione e analisi.\nNessuna scrittura ECU o cancellazione errori è esposta nell’app.';
+      'Profilo di studio: Ford Fiesta 2021 · OBDLink MX+\nAcquisizione Android in primo piano tramite Bluetooth RFCOMM. L’app legge i dati OBD senza scrivere sulla centralina né cancellare errori.';
 
   @override
   String get modelSaved => 'Modello salvato per i prossimi viaggi.';
@@ -454,7 +441,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get comparisonNotice =>
-      'Confronta percorsi e condizioni simili. Traffico, temperatura e pendenza possono cambiare i risultati.';
+      'Gli score usano gli stessi parametri. Confronta comunque percorsi e condizioni simili: traffico, temperatura e pendenza possono cambiare i risultati. La colonna Δ è Viaggio B meno Viaggio A.';
 
   @override
   String get differentModels =>
@@ -491,6 +478,51 @@ class AppLocalizationsIt extends AppLocalizations {
   String get mappedTime => 'Tempo mappato';
 
   @override
+  String get comparisonDuration => 'Durata osservata';
+
+  @override
+  String get comparisonFuelLiters => 'Carburante stimato · L';
+
+  @override
+  String get comparisonAverageSpeed => 'Velocità media valida · km/h';
+
+  @override
+  String get comparisonEventRate => 'Eventi bruschi · al minuto';
+
+  @override
+  String get comparisonMapCoverage => 'Copertura mappa · %';
+
+  @override
+  String get comparisonSpeedCoverage => 'Copertura velocità · %';
+
+  @override
+  String get comparisonFuelCoverage => 'Copertura fuel rate · %';
+
+  @override
+  String get comparisonDelta => 'Δ (B − A)';
+
+  @override
+  String get comparisonMetrics => 'Riepilogo delle metriche';
+
+  @override
+  String get comparisonScoreBreakdown =>
+      'Confronto delle componenti dello score';
+
+  @override
+  String get comparisonMaps => 'Distribuzione RPM–carico';
+
+  @override
+  String comparisonHigherScore(String name, String score) =>
+      'Score maggiore: $name · $score/100';
+
+  @override
+  String get comparisonSimilarScores => 'Score sostanzialmente uguali';
+
+  @override
+  String get comparisonDifferentCoverage =>
+      'I due score usano componenti diverse perché alcuni dati OBD mancano in uno dei viaggi: il confronto del totale è indicativo.';
+
+  @override
   String get mapCsvColumns => 'Associa le colonne del CSV';
 
   @override
@@ -517,11 +549,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get notPresent => 'Non presente';
 
   @override
-  String get engineMap => 'La mappa del tuo motore';
+  String get engineMap => 'Mappa RPM–carico';
 
   @override
   String get engineMapSubtitle =>
-      'Dove ha lavorato il motore, e con quale costo osservato.';
+      'Raggruppa i campioni del viaggio per regime motore e carico: ogni cella copre 500 rpm e 10% di carico.';
 
   @override
   String get occupancy => 'Permanenza';
@@ -530,7 +562,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get fuel => 'Carburante';
 
   @override
-  String get relativeIndex => 'Indice relativo';
+  String get zoneFavorability => 'Zone favorevoli';
 
   @override
   String get penalty => 'Penalità';
@@ -546,14 +578,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get fuelLegend => 'Flusso medio in l/h · solo dati disponibili';
 
   @override
-  String get relativeLegend => 'Da 0 a 100 · favorevolezza secondo le regole';
+  String get favorabilityLegend =>
+      'Da 0 a 100 · favorevolezza secondo le regole';
 
   @override
   String get penaltyLegend => 'Da 0 a 1 · costo medio delle zone';
 
   @override
   String get mapNotice =>
-      'Mappa delle condizioni osservate. L’indice relativo descrive le regole del modello: non misura il rendimento termico o la BSFC.';
+      'È una distribuzione dei dati osservati durante il viaggio, non la mappa ECU né una misura di potenza o rendimento. Cambia colore selezionando tempo, flusso carburante, favorevolezza stimata o penalità media.';
 
   @override
   String get loadAxis => 'Carico %';
@@ -803,16 +836,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Collegamento OBD perso dopo i tentativi di riconnessione. Il viaggio è in pausa: riconnetti l’adattatore e tocca Riprendi.';
 
   @override
-  String get zoneReason =>
-      'Tempo ponderato nelle zone RPM–carico: costo 0, 0,5 o 1.';
+  String zoneReason(String lowRpm, String highRpm, String highLoad) =>
+      'Zona favorevole: $lowRpm ≤ RPM < $highRpm e 20% ≤ carico < $highLoad%; costo 0,5 nelle altre zone e 1 ad alto regime o a bassi giri con carico elevato.';
 
   @override
-  String get smoothReason =>
-      '−5 punti per evento al minuto; accelerazione derivata dalla velocità OBD.';
-
-  @override
-  String get economyExcluded =>
-      'Escluso: configura una baseline di viaggi comparabili per questo veicolo.';
+  String smoothReason(String acceleration, String braking) =>
+      '−5 punti per evento al minuto; accelerazione derivata dalla velocità OBD. Soglie: +$acceleration e −$braking m/s².';
 
   @override
   String get scoreRequiresData =>
@@ -823,7 +852,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get scoreWeightsNormalized =>
-      'I pesi delle componenti disponibili sono rinormalizzati. ';
+      'Le componenti con meno di 5 secondi di dati validi sono escluse e i pesi rimanenti sono rinormalizzati. ';
 
   @override
   String get saveSettingsFailed => 'Impossibile salvare le impostazioni.';
@@ -833,7 +862,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get invalidSettings =>
-      'Controlla pesi, soglie e baseline: i valori non sono validi.';
+      'Controlla pesi e soglie: i valori non sono validi.';
 
   @override
   String get csvRequiresRows =>
@@ -1208,28 +1237,38 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String economyReason(String baseline) {
-    return 'Rapporto rispetto alla baseline $baseline l/100 km; richiede copertura ≥80% e distanza ≥100 m.';
+  String scoreIntro(String score, String components) {
+    return 'Score $score/100, media ponderata di $components componenti di guida. ';
   }
 
   @override
-  String scoreIntro(String score, String components) {
-    return 'Score $score/100 su $components componenti disponibili. ';
+  String scoreFormula(String formula) {
+    return 'Media ponderata dei contributi: $formula. ';
+  }
+
+  @override
+  String scoreContribution(
+    String name,
+    String value,
+    String weight,
+    String points,
+  ) {
+    return '$name $value/100 × $weight% = $points punti';
+  }
+
+  @override
+  String scoreEventsDetailed(String accelerations, String brakings) {
+    return 'Eventi inclusi: $accelerations accelerazioni brusche e $brakings frenate brusche, rilevate dalla velocità OBD. ';
   }
 
   @override
   String scoreMapPortion(String percent) {
-    return '$percent% del tempo mappato in zone favorevoli secondo le regole configurate. ';
-  }
-
-  @override
-  String scoreEventCount(String count) {
-    return '$count eventi di accelerazione o frenata. ';
+    return '$percent% del tempo mappato è ricaduto nelle zone classificate favorevoli dalle soglie configurate. ';
   }
 
   @override
   String scoreMapCoverage(String percent) {
-    return 'Copertura della mappa: $percent%. Modello euristico, da calibrare su viaggi reali.';
+    return 'Copertura RPM-carico: $percent%. Il consumo è mostrato separatamente e non pesa nello score; il modello resta euristico.';
   }
 
   @override

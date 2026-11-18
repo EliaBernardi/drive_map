@@ -7,12 +7,28 @@ import '../domain/telemetry.dart';
 import '../features/analytics/trip_analyzer.dart';
 import 'components.dart';
 
-enum MapMetric { occupancy, fuel, relative, penalty }
+enum MapMetric { occupancy, fuel, favorability, penalty }
 
 class OperatingMap extends StatefulWidget {
-  const OperatingMap({super.key, required this.analysis, this.compact = false});
+  const OperatingMap({
+    super.key,
+    required this.analysis,
+    this.compact = false,
+    this.metric,
+    this.onMetricChanged,
+    this.showMetricSelector = true,
+    this.sharedColumnCount,
+    this.sharedScaleMaximum,
+    this.title,
+  });
   final TripAnalysis analysis;
   final bool compact;
+  final MapMetric? metric;
+  final ValueChanged<MapMetric>? onMetricChanged;
+  final bool showMetricSelector;
+  final int? sharedColumnCount;
+  final double? sharedScaleMaximum;
+  final String? title;
   @override
   State<OperatingMap> createState() => _OperatingMapState();
 }
@@ -23,35 +39,45 @@ class _OperatingMapState extends State<OperatingMap> {
   @override
   Widget build(BuildContext context) {
     final a = widget.analysis;
-    final columns = a.cells.fold(12, (v, c) => math.max(v, c.rpmBin + 1));
+    final metric = widget.metric ?? _metric;
+    final columns =
+        widget.sharedColumnCount ??
+        a.cells.fold<int>(12, (v, c) => math.max(v, c.rpmBin + 1).toInt());
     return Panel(
       padding: widget.compact ? 16 : 24,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionTitle(
-            context.l10n.engineMap,
+            widget.title ?? context.l10n.engineMap,
             subtitle: widget.compact ? null : context.l10n.engineMapSubtitle,
           ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final m in MapMetric.values)
-                ChoiceChip(
-                  label: Text(
-                    [
-                      context.l10n.occupancy,
-                      context.l10n.fuel,
-                      context.l10n.relativeIndex,
-                      context.l10n.penalty,
-                    ][m.index],
+          if (widget.showMetricSelector)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final m in MapMetric.values)
+                  ChoiceChip(
+                    label: Text(
+                      [
+                        context.l10n.occupancy,
+                        context.l10n.fuel,
+                        context.l10n.zoneFavorability,
+                        context.l10n.penalty,
+                      ][m.index],
+                    ),
+                    selected: metric == m,
+                    onSelected: (_) {
+                      if (widget.onMetricChanged != null) {
+                        widget.onMetricChanged!(m);
+                      } else {
+                        setState(() => _metric = m);
+                      }
+                    },
                   ),
-                  selected: _metric == m,
-                  onSelected: (_) => setState(() => _metric = m),
-                ),
-            ],
-          ),
+              ],
+            ),
           const SizedBox(height: 20),
           if (a.cells.isEmpty)
             SizedBox(
@@ -102,10 +128,11 @@ class _OperatingMapState extends State<OperatingMap> {
                     size: Size(constraints.maxWidth, 280),
                     painter: _MapPainter(
                       a.cells,
-                      _metric,
+                      metric,
                       columns,
                       _selected,
                       context.l10n,
+                      widget.sharedScaleMaximum,
                     ),
                   ),
                 ),
@@ -122,7 +149,7 @@ class _OperatingMapState extends State<OperatingMap> {
                   gradient: LinearGradient(
                     colors: [
                       DriveColors.surface,
-                      _metric == MapMetric.penalty
+                      metric == MapMetric.penalty
                           ? DriveColors.red
                           : DriveColors.accent,
                     ],
@@ -132,10 +159,10 @@ class _OperatingMapState extends State<OperatingMap> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  switch (_metric) {
+                  switch (metric) {
                     MapMetric.occupancy => context.l10n.occupancyLegend,
                     MapMetric.fuel => context.l10n.fuelLegend,
-                    MapMetric.relative => context.l10n.relativeLegend,
+                    MapMetric.favorability => context.l10n.favorabilityLegend,
                     MapMetric.penalty => context.l10n.penaltyLegend,
                   },
                   style: const TextStyle(
@@ -197,23 +224,27 @@ class _MapPainter extends CustomPainter {
     this.columns,
     this.selected,
     this.strings,
+    this.sharedScaleMaximum,
   );
   final AppLocalizations strings;
   final List<OperatingCell> cells;
   final MapMetric metric;
   final int columns;
   final OperatingCell? selected;
+  final double? sharedScaleMaximum;
   double? value(OperatingCell c) => switch (metric) {
     MapMetric.occupancy => c.seconds,
     MapMetric.fuel => c.meanFuel,
-    MapMetric.relative => c.relativeIndex,
+    MapMetric.favorability => c.zoneFavorability,
     MapMetric.penalty => c.penalty,
   };
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(38, 18, size.width - 46, 220);
     final width = rect.width / columns, height = rect.height / 10;
-    final maximum = cells.fold(0.0, (v, c) => math.max(v, value(c) ?? 0));
+    final maximum =
+        sharedScaleMaximum ??
+        cells.fold<double>(0, (v, c) => math.max(v, value(c) ?? 0).toDouble());
     for (var x = 0; x < columns; x++) {
       for (var y = 0; y < 10; y++) {
         final cell = cells
@@ -224,7 +255,7 @@ class _MapPainter extends CustomPainter {
             ? 0.0
             : metric == MapMetric.penalty
             ? v
-            : metric == MapMetric.relative
+            : metric == MapMetric.favorability
             ? v / 100
             : maximum > 0
             ? v / maximum
@@ -293,6 +324,7 @@ class _MapPainter extends CustomPainter {
       oldDelegate.cells != cells ||
       oldDelegate.metric != metric ||
       oldDelegate.selected != selected ||
+      oldDelegate.sharedScaleMaximum != sharedScaleMaximum ||
       oldDelegate.strings.localeName != strings.localeName;
 }
 

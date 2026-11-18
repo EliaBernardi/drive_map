@@ -515,25 +515,25 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSubtitle.
   ///
   /// In it, this message translates to:
-  /// **'Regole esplicite, pesi modificabili e nessuna scatola nera.'**
+  /// **'Regole esplicite per valutare il comportamento di guida; il consumo è mostrato separatamente.'**
   String get settingsSubtitle;
 
   /// No description provided for @heuristicModel.
   ///
   /// In it, this message translates to:
-  /// **'Modello euristico · rules-1.0.0'**
+  /// **'Modello euristico · rules-2.0.0'**
   String get heuristicModel;
 
   /// No description provided for @settingsNotice.
   ///
   /// In it, this message translates to:
-  /// **'Le impostazioni si applicano ai nuovi viaggi. Ogni viaggio conserva la propria configurazione, così lo score può essere ricalcolato in modo riproducibile.'**
+  /// **'Questi parametri si applicano a tutti i viaggi, anche a quelli già salvati. Modificandoli, lo score viene ricalcolato con le stesse regole per l’intero archivio.'**
   String get settingsNotice;
 
   /// No description provided for @loadNotice.
   ///
   /// In it, this message translates to:
-  /// **'Calculated load è un proxy del carico. L’indice relativo rappresenta la favorevolezza delle zone secondo queste regole; non è una misura di coppia, potenza o rendimento termico.'**
+  /// **'Calculated load è un proxy del carico. L’indice delle zone favorevoli segue soglie euristiche: non misura efficienza, coppia o potenza. Il consumo del viaggio resta una metrica separata.'**
   String get loadNotice;
 
   /// No description provided for @componentWeights.
@@ -545,7 +545,7 @@ abstract class AppLocalizations {
   /// No description provided for @weightsNotice.
   ///
   /// In it, this message translates to:
-  /// **'I pesi vengono rinormalizzati sulle componenti disponibili. Valori iniziali: 0,40 / 0,25 / 0,20 / 0,15.'**
+  /// **'Lo score combina zone operative, regolarità e riscaldamento. I pesi sono rinormalizzati se mancano dati per una componente. Valori iniziali: 0,40 / 0,25 / 0,20.'**
   String get weightsNotice;
 
   /// No description provided for @operatingZones.
@@ -565,12 +565,6 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Riscaldamento'**
   String get warmup;
-
-  /// No description provided for @relativeEconomy.
-  ///
-  /// In it, this message translates to:
-  /// **'Consumo relativo'**
-  String get relativeEconomy;
 
   /// No description provided for @engineZones.
   ///
@@ -649,24 +643,6 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Frenata brusca · m/s²'**
   String get hardBrakingThreshold;
-
-  /// No description provided for @economyBaseline.
-  ///
-  /// In it, this message translates to:
-  /// **'Baseline di consumo'**
-  String get economyBaseline;
-
-  /// No description provided for @baselineNotice.
-  ///
-  /// In it, this message translates to:
-  /// **'Imposta 0 per escludere la componente economy. Una baseline deve provenire da viaggi comparabili per percorso, temperatura e traffico. La sola quantità di carburante non misura l’efficienza.'**
-  String get baselineNotice;
-
-  /// No description provided for @baselineConsumption.
-  ///
-  /// In it, this message translates to:
-  /// **'Consumo di riferimento · l/100 km'**
-  String get baselineConsumption;
 
   /// No description provided for @saving.
   ///
@@ -947,7 +923,7 @@ abstract class AppLocalizations {
   /// No description provided for @comparisonNotice.
   ///
   /// In it, this message translates to:
-  /// **'Confronta percorsi e condizioni simili. Traffico, temperatura e pendenza possono cambiare i risultati.'**
+  /// **'Gli score usano gli stessi parametri. Confronta comunque percorsi e condizioni simili: traffico, temperatura e pendenza possono cambiare i risultati. La colonna Δ è Viaggio B meno Viaggio A.'**
   String get comparisonNotice;
 
   /// No description provided for @differentModels.
@@ -1016,6 +992,34 @@ abstract class AppLocalizations {
   /// **'Tempo mappato'**
   String get mappedTime;
 
+  String get comparisonDuration;
+
+  String get comparisonFuelLiters;
+
+  String get comparisonAverageSpeed;
+
+  String get comparisonEventRate;
+
+  String get comparisonMapCoverage;
+
+  String get comparisonSpeedCoverage;
+
+  String get comparisonFuelCoverage;
+
+  String get comparisonDelta;
+
+  String get comparisonMetrics;
+
+  String get comparisonScoreBreakdown;
+
+  String get comparisonMaps;
+
+  String comparisonHigherScore(String name, String score);
+
+  String get comparisonSimilarScores;
+
+  String get comparisonDifferentCoverage;
+
   /// No description provided for @mapCsvColumns.
   ///
   /// In it, this message translates to:
@@ -1067,13 +1071,13 @@ abstract class AppLocalizations {
   /// No description provided for @engineMap.
   ///
   /// In it, this message translates to:
-  /// **'La mappa del tuo motore'**
+  /// **'Mappa RPM–carico'**
   String get engineMap;
 
   /// No description provided for @engineMapSubtitle.
   ///
   /// In it, this message translates to:
-  /// **'Dove ha lavorato il motore, e con quale costo osservato.'**
+  /// **'Raggruppa i campioni del viaggio per regime motore e carico: ogni cella copre 500 rpm e 10% di carico.'**
   String get engineMapSubtitle;
 
   /// No description provided for @occupancy.
@@ -1088,11 +1092,8 @@ abstract class AppLocalizations {
   /// **'Carburante'**
   String get fuel;
 
-  /// No description provided for @relativeIndex.
-  ///
-  /// In it, this message translates to:
-  /// **'Indice relativo'**
-  String get relativeIndex;
+  /// No description provided for @zoneFavorability.
+  String get zoneFavorability;
 
   /// No description provided for @penalty.
   ///
@@ -1118,11 +1119,8 @@ abstract class AppLocalizations {
   /// **'Flusso medio in l/h · solo dati disponibili'**
   String get fuelLegend;
 
-  /// No description provided for @relativeLegend.
-  ///
-  /// In it, this message translates to:
-  /// **'Da 0 a 100 · favorevolezza secondo le regole'**
-  String get relativeLegend;
+  /// No description provided for @favorabilityLegend.
+  String get favorabilityLegend;
 
   /// No description provided for @penaltyLegend.
   ///
@@ -1133,7 +1131,7 @@ abstract class AppLocalizations {
   /// No description provided for @mapNotice.
   ///
   /// In it, this message translates to:
-  /// **'Mappa delle condizioni osservate. L’indice relativo descrive le regole del modello: non misura il rendimento termico o la BSFC.'**
+  /// **'È una distribuzione dei dati osservati durante il viaggio, non la mappa ECU né una misura di potenza o rendimento. Cambia colore selezionando tempo, flusso carburante, favorevolezza stimata o penalità media.'**
   String get mapNotice;
 
   /// No description provided for @loadAxis.
@@ -1605,22 +1603,10 @@ abstract class AppLocalizations {
   String get linkLostTripPaused;
 
   /// No description provided for @zoneReason.
-  ///
-  /// In it, this message translates to:
-  /// **'Tempo ponderato nelle zone RPM–carico: costo 0, 0,5 o 1.'**
-  String get zoneReason;
+  String zoneReason(String lowRpm, String highRpm, String highLoad);
 
   /// No description provided for @smoothReason.
-  ///
-  /// In it, this message translates to:
-  /// **'−5 punti per evento al minuto; accelerazione derivata dalla velocità OBD.'**
-  String get smoothReason;
-
-  /// No description provided for @economyExcluded.
-  ///
-  /// In it, this message translates to:
-  /// **'Escluso: configura una baseline di viaggi comparabili per questo veicolo.'**
-  String get economyExcluded;
+  String smoothReason(String acceleration, String braking);
 
   /// No description provided for @scoreRequiresData.
   ///
@@ -1655,7 +1641,7 @@ abstract class AppLocalizations {
   /// No description provided for @invalidSettings.
   ///
   /// In it, this message translates to:
-  /// **'Controlla pesi, soglie e baseline: i valori non sono validi.'**
+  /// **'Controlla pesi e soglie: i valori non sono validi.'**
   String get invalidSettings;
 
   /// No description provided for @csvRequiresRows.
@@ -2186,34 +2172,33 @@ abstract class AppLocalizations {
   /// **'Penalità per carico oltre {load}% sotto {temperature} °C, sul tempo osservato.'**
   String warmupReason(String load, String temperature);
 
-  /// No description provided for @economyReason.
-  ///
-  /// In it, this message translates to:
-  /// **'Rapporto rispetto alla baseline {baseline} l/100 km; richiede copertura ≥80% e distanza ≥100 m.'**
-  String economyReason(String baseline);
-
   /// No description provided for @scoreIntro.
   ///
   /// In it, this message translates to:
   /// **'Score {score}/100 su {components} componenti disponibili. '**
   String scoreIntro(String score, String components);
 
+  String scoreFormula(String formula);
+
+  String scoreContribution(
+    String name,
+    String value,
+    String weight,
+    String points,
+  );
+
+  String scoreEventsDetailed(String accelerations, String brakings);
+
   /// No description provided for @scoreMapPortion.
   ///
   /// In it, this message translates to:
-  /// **'{percent}% del tempo mappato in zone favorevoli secondo le regole configurate. '**
+  /// **'{percent}% del tempo mappato è ricaduto nelle zone classificate favorevoli dalle soglie configurate. '**
   String scoreMapPortion(String percent);
-
-  /// No description provided for @scoreEventCount.
-  ///
-  /// In it, this message translates to:
-  /// **'{count} eventi di accelerazione o frenata. '**
-  String scoreEventCount(String count);
 
   /// No description provided for @scoreMapCoverage.
   ///
   /// In it, this message translates to:
-  /// **'Copertura della mappa: {percent}%. Modello euristico, da calibrare su viaggi reali.'**
+  /// **'Copertura RPM-carico: {percent}%. Il consumo è mostrato separatamente e non pesa nello score; il modello resta euristico.'**
   String scoreMapCoverage(String percent);
 
   /// No description provided for @unsupportedModel.

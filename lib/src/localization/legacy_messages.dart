@@ -17,7 +17,6 @@ extension LegacyMessages on AppLocalizations {
     'Zone operative' => operatingZones,
     'Regolarità' => smoothness,
     'Riscaldamento' => warmup,
-    'Consumo relativo' => relativeEconomy,
     'Riprova' => retry,
     'Tempo' => time,
     'Penalità' => penalty,
@@ -65,11 +64,6 @@ extension LegacyMessages on AppLocalizations {
     'Viaggio dimostrativo' => demoTrip,
     'Collegamento OBD perso dopo i tentativi di riconnessione. Il viaggio è in pausa: riconnetti l’adattatore e tocca Riprendi.' =>
       linkLostTripPaused,
-    'Tempo ponderato nelle zone RPM–carico: costo 0, 0,5 o 1.' => zoneReason,
-    '−5 punti per evento al minuto; accelerazione derivata dalla velocità OBD.' =>
-      smoothReason,
-    'Escluso: configura una baseline di viaggi comparabili per questo veicolo.' =>
-      economyExcluded,
     'Servono almeno 5 secondi di dati validi per calcolare le componenti dello score.' =>
       scoreRequiresData,
     'Mappa non disponibile: RPM o carico mancanti. ' => scoreNoMap,
@@ -77,8 +71,7 @@ extension LegacyMessages on AppLocalizations {
       scoreWeightsNormalized,
     'Impossibile salvare le impostazioni.' => saveSettingsFailed,
     'I parametri devono essere numeri finiti.' => finiteParameters,
-    'Controlla pesi, soglie e baseline: i valori non sono validi.' =>
-      invalidSettings,
+    'Controlla pesi e soglie: i valori non sono validi.' => invalidSettings,
     'Il CSV deve contenere un’intestazione e almeno una riga.' =>
       csvRequiresRows,
     'Limite di importazione: 200.000 righe per viaggio.' => csvRowLimit,

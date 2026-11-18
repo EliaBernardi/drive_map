@@ -13,16 +13,13 @@ src/infrastructure/           SQLite e repository tramite Drift
 src/providers.dart            controller Riverpod e coordinamento dei casi d’uso
 src/presentation/             live, archivio, analisi, grafici, confronto, impostazioni
 android/.../MainActivity.kt   bridge RFCOMM nativo
-rios/Runner/AppDelegate.swift bridge ExternalAccessory nativo
 ```
-
-Il percorso iOS effettivo è `ios/Runner/AppDelegate.swift`.
 
 Il domain e l’analizzatore non dipendono da Flutter/Riverpod. I provider gestiscono stato della connessione, frame corrente, registrazione, database, archivio, dettagli e configurazione. Il simulatore implementa lo stesso `ObdTransport`: non alimenta direttamente la UI con valori inventati.
 
 ## Trasporto e protocollo
 
-1. Android espone dispositivi già associati e apre SPP UUID `00001101-0000-1000-8000-00805F9B34FB` su un worker thread. L’associazione di nuovi dispositivi è delegata al sistema. iOS usa `EAAccessoryManager` ed `EASession`, subordinati ai protocolli MFi autorizzati.
+1. Android espone dispositivi già associati e apre SPP UUID `00001101-0000-1000-8000-00805F9B34FB` su un worker thread. L’associazione di nuovi dispositivi è delegata al sistema.
 2. Un solo comando ELM può essere in volo. Il canale accumula frammenti fino al prompt `>`; impone un limite di 32 KiB. Il timeout invalida il canale: una risposta arrivata tardi non può essere attribuita al PID successivo.
 3. Inizializzazione: `ATZ`, `ATE0`, `ATL0`, `ATS1`, `ATH1`, `ATSP0`, `ATAT1`, `ATST64`. Le risposte devono confermare i comandi. Sono configurazioni dell’adattatore, non scritture ECU.
 4. `0100` sceglie il primo risponditore, preferendo `7E8` o `18DAF110`; la stessa centralina viene usata per tutte le letture e pagine successive. Non si uniscono bitmap di centraline diverse. Intestazioni CAN 11/29 bit e ISO a tre byte sono gestite per le risposte a singolo frame richieste dall’MVP.
@@ -40,9 +37,9 @@ SQLite conserva viaggi, configurazione, PID supportati, frame, raw, eventi e cel
 
 Pause e disconnessioni creano segmenti distinti. Le analisi non integrano attraverso i loro confini. Un gap >1,5 s nello stesso segmento diminuisce la copertura ma non aggiunge distanza, carburante o tempo alle celle. Non si inventa un intervallo dopo l’ultimo campione. Tempo osservato, tempo mappato e durata civile possono quindi differire.
 
-## Analisi deterministica `rules-1.0.0`
+## Analisi deterministica `rules-2.0.0`
 
-I frame vengono ordinati per timestamp, deduplicati e validati per range e freschezza. La stessa configurazione e gli stessi frame producono gli stessi risultati. I risultati vengono ricalcolati dai frame usando la configurazione del viaggio; gli aggregati SQLite sono una cache.
+I frame vengono ordinati per timestamp, deduplicati e validati per range e freschezza. `TripAnalyzer` contiene l’unica implementazione della formula. I parametri attivi sono quelli globali in `SharedPreferences` e vengono applicati a tutti i viaggi, inclusi quelli già salvati; modificandoli, le analisi visualizzate vengono ricalcolate dai frame. `config_json` sui viaggi e nei bundle è mantenuto per compatibilità, ma non determina più lo score. I bundle importati vengono analizzati con i parametri globali correnti.
 
 ### Celle operative
 
@@ -51,7 +48,7 @@ I frame vengono ordinati per timestamp, deduplicati e validati per range e fresc
 - Escluso il motore spento (RPM = 0) dalla mappa e dal sottoscore warm-up.
 - Per ogni cella: conteggio, tempo, velocità media, fuel rate medio, throttle medio, penalità media.
 - Medie ponderate per durata e per disponibilità del singolo parametro.
-- Quattro colorazioni: permanenza, fuel rate, indice di favorevolezza relativo, penalità.
+- Quattro colorazioni: permanenza, fuel rate, favorevolezza della zona secondo le regole, penalità.
 - La selezione della cella mostra il contributo negativo al sottoscore zone; mappa e score usano lo stesso costo.
 
 ### Zone
@@ -63,7 +60,7 @@ Default: regime favorevole `[1200,3500)`, carico favorevole `[20,75)`.
 - Costo 0,5: altre condizioni valide.
 - `S_zone = 100 × (1 − Σ costo × dt / tempo_mappato)`.
 
-Questa versione penalizza l’alto regime anche a carico basso. È una scelta euristica esplicita, modificabile attraverso le soglie, da verificare sul motore concreto. L’indice relativo della cella è `100 × (1 − costo_medio)`; non è un rapporto fra lavoro e carburante e non viene presentato come rendimento termico.
+Questa versione penalizza l’alto regime anche a carico basso. È una scelta euristica esplicita, modificabile attraverso le soglie, da verificare sul motore concreto. L’indice di favorevolezza della cella è `100 × (1 − costo_medio)`; non è un rapporto fra lavoro e carburante e non viene presentato come rendimento termico.
 
 ### Regolarità
 
@@ -75,29 +72,29 @@ Soglie iniziali: accelerazione >2,5 m/s²; frenata <−3 m/s². Evento al supera
 
 Sotto 70 °C, `g = max(load − 50, 0) / 50`. `S_warmup = 100 × (1 − Σ g × dt / tempo_con_coolant_load_rpm_validi)`. Le condizioni a motore già caldo contribuiscono con penalità nulla. Il valore segue la normalizzazione per il tempo del viaggio indicata dal report; confronti di durata molto diversa richiedono cautela.
 
-### Consumo
+### Consumo, fuori dallo score
 
 Integrazione trapezoidale: litri = media dei fuel rate agli estremi × dt/3600; chilometri = media velocità × dt/3600. Entrambi gli estremi devono essere validi. Le quantità totali parziali mostrano la copertura.
 
 `l/100 km` usa soltanto intervalli in cui velocità e fuel rate sono disponibili insieme, richiede almeno 100 m e copertura comune ≥80%. Non divide il carburante di una porzione di viaggio per la distanza di un’altra.
 
-La baseline è inizialmente disattivata (0). Quando l’utente la configura, `S_economy = clamp(100 × baseline / consumo, 0, 100)`. Va scelta da percorsi e condizioni comparabili; non esiste ancora una classificazione automatica del percorso.
+Il consumo in l/100 km viene mostrato come metrica descrittiva del viaggio. Non contribuisce allo score: il valore osservato dipende anche da percorso, traffico, temperatura e soste.
 
 ### Score totale
 
-Pesi iniziali: zone 0,40; regolarità 0,25; riscaldamento 0,20; economy 0,15. Zone/smooth/warm-up richiedono almeno 5 s di dati per componente. Una componente non disponibile resta `null`, con peso escluso. Il totale rinormalizza i pesi rimanenti e mostra copertura e contributi effettivi. Un peso configurato a zero disabilita la componente. Non attribuiamo 100 punti a un sensore mancante.
+Pesi iniziali: zone 0,40; regolarità 0,25; riscaldamento 0,20. Ogni componente richiede almeno 5 s di dati validi. Una componente non disponibile resta `null`, con peso escluso. Il totale rinormalizza i pesi rimanenti e l’interfaccia mostra la media ponderata, le soglie applicate, gli eventi rilevati, la copertura e il contributo effettivo di ogni componente. Il consumo è mostrato separatamente. Non attribuiamo 100 punti a un dato mancante.
 
 ## Correzioni/proposte rispetto al PDF
 
-1. **Bluetooth**: specificare Classic/RFCOMM per Android e MFi/ExternalAccessory per iOS, includendo l’abilitazione del produttore tra i prerequisiti. Il supporto di iOS dichiarato da MX+ non basta da solo per un’app nuova.
-2. **Fuel rate**: il CSV OBDLink può contenere dati calcolati o proprietari. L’MVP interroga PID standard `015E`; se manca, economy viene omessa. Non stimare automaticamente carburante da MAF senza ipotesi sul combustibile.
+1. **Piattaforma**: l’ambito di consegna è Android con Bluetooth Classic/RFCOMM e OBDLink MX+; iOS e desktop sono fuori ambito.
+2. **Fuel rate**: il CSV OBDLink può contenere dati calcolati o proprietari. L’MVP interroga PID standard `015E`; se manca, la metrica di consumo non viene calcolata. Non stimare automaticamente carburante da MAF senza ipotesi sul combustibile.
 3. **Coppia**: l’eventuale conversione della coppia percentuale deve usare la semantica SAE del PID e la reference torque disponibile, non una generica coppia massima presa da una scheda tecnica. Non è implementata nell’MVP.
 4. **Accelerazione**: i tre assi del telefono richiedono sensori, orientamento, rimozione della gravità e calibrazione. L’MVP usa la derivata temporale della velocità OBD e lo dichiara.
 5. **Score confrontabile**: normalizzare gli eventi per il tempo, versionare configurazione e formule, mostrare copertura, escludere componenti mancanti e confrontare viaggi con modelli/condizioni simili.
-6. **Efficienza**: denominare il valore iniziale “indice relativo secondo le regole”; non dedurre efficienza energetica dal solo fuel rate. Baseline data-driven e analisi di sensibilità restano parte della validazione scientifica.
+6. **Efficienza**: il consumo in l/100 km è riportato separatamente. La favorevolezza delle zone è un indice euristico RPM-carico, non un rendimento energetico né una BSFC.
 7. **Frequenza**: 500 ms è una griglia di output, non una garanzia che ogni PID venga letto a 2 Hz. Conservare età e timestamp di ciascuna misura.
 8. **Background**: rendere esplicito il comportamento operativo. L’MVP registra solo in primo piano; un servizio persistente richiede lavoro e validazione distinti.
 
 ## Sviluppi successivi
 
-Autorizzazione MFi e prove MX+, PID proprietari solo dove necessari, adattamento all’export OBDLink reale, profili multipli/percorsi, filtri di accelerazione calibrati, asse throttle alternativo, sensibilità dei pesi, baseline data-driven e acquisizione in background. GPS, cloud e 3D restano opzionali come nel report.
+Prove ripetute con MX+, adattamento all’export OBDLink reale, profili multipli/percorsi, filtri di accelerazione calibrati, asse throttle alternativo, sensibilità dei pesi e acquisizione in background. iOS, desktop, GPS, cloud e 3D sono fuori dall’ambito attuale.

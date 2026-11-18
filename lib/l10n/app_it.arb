@@ -69,18 +69,17 @@
   "languageLoadFailed": "Impossibile caricare la lingua salvata.",
   "restoreModel": "Ripristina modello iniziale",
   "settingsTitle": "Uno score che puoi capire.",
-  "settingsSubtitle": "Regole esplicite, pesi modificabili e nessuna scatola nera.",
-  "heuristicModel": "Modello euristico · rules-1.0.0",
-  "settingsNotice": "Le impostazioni si applicano ai nuovi viaggi. Ogni viaggio conserva la propria configurazione, così lo score può essere ricalcolato in modo riproducibile.",
-  "loadNotice": "Calculated load è un proxy del carico. L’indice relativo rappresenta la favorevolezza delle zone secondo queste regole; non è una misura di coppia, potenza o rendimento termico.",
+  "settingsSubtitle": "Regole esplicite per valutare il comportamento di guida; il consumo è mostrato separatamente.",
+  "heuristicModel": "Modello euristico · rules-2.0.0",
+  "settingsNotice": "Questi parametri si applicano a tutti i viaggi, anche a quelli già salvati. Modificandoli, lo score viene ricalcolato con le stesse regole per l’intero archivio.",
+  "loadNotice": "Calculated load è un proxy del carico. L’indice delle zone favorevoli segue soglie euristiche: non misura efficienza, coppia o potenza. Il consumo del viaggio resta una metrica separata.",
   "componentWeights": "Il peso di ogni componente",
-  "weightsNotice": "I pesi vengono rinormalizzati sulle componenti disponibili. Valori iniziali: 0,40 / 0,25 / 0,20 / 0,15.",
+  "weightsNotice": "Lo score combina zone operative, regolarità e riscaldamento. I pesi sono rinormalizzati se mancano dati per una componente. Valori iniziali: 0,40 / 0,25 / 0,20.",
   "operatingZones": "Zone operative",
   "smoothness": "Regolarità",
   "warmup": "Riscaldamento",
-  "relativeEconomy": "Consumo relativo",
   "engineZones": "Le zone del motore",
-  "engineZonesNotice": "Favorevole: regime tra le soglie e carico tra 20% e soglia alta. Sfavorevole: alto regime, oppure basso regime con carico elevato.",
+  "engineZonesNotice": "Zona favorevole: regime tra le soglie e carico tra 20% e soglia alta. Penalità 0,5 negli altri casi; 1 ad alto regime o a basso regime con carico elevato.",
   "lowRpm": "Regime minimo favorevole · rpm",
   "highRpm": "Soglia alto regime · rpm",
   "highLoad": "Soglia alto carico · %",
@@ -92,13 +91,10 @@
   "hardAccelerationEvent": "Accelerazione brusca",
   "hardBrakingEvent": "Frenata brusca",
   "hardBrakingThreshold": "Frenata brusca · m/s²",
-  "economyBaseline": "Baseline di consumo",
-  "baselineNotice": "Imposta 0 per escludere la componente economy. Una baseline deve provenire da viaggi comparabili per percorso, temperatura e traffico. La sola quantità di carburante non misura l’efficienza.",
-  "baselineConsumption": "Consumo di riferimento · l/100 km",
   "saving": "Salvataggio…",
   "saveModel": "Salva modello",
   "defaults": "Valori iniziali",
-  "studyProfile": "Profilo di studio: Ford Fiesta 2021 · OBDLink MX+\nAcquisizione mobile in primo piano. Android: RFCOMM. iOS: ExternalAccessory, previa configurazione e abilitazione del produttore. Desktop: importazione e analisi.\nNessuna scrittura ECU o cancellazione errori è esposta nell’app.",
+  "studyProfile": "Profilo di studio: Ford Fiesta 2021 · OBDLink MX+\nAcquisizione Android in primo piano tramite Bluetooth RFCOMM. L’app legge i dati OBD senza scrivere sulla centralina né cancellare errori.",
   "modelSaved": "Modello salvato per i prossimi viaggi.",
   "tripsTitle": "Ogni viaggio ha una storia.",
   "tripsSubtitle": "Ritrova i percorsi, esplora il motore e confronta i risultati.",
@@ -141,7 +137,7 @@
   "explainable": "Spiegabile · v1",
   "notCalculated": "Non calcolato",
   "compareTrips": "Due viaggi, a confronto",
-  "comparisonNotice": "Confronta percorsi e condizioni simili. Traffico, temperatura e pendenza possono cambiare i risultati.",
+  "comparisonNotice": "Gli score usano gli stessi parametri. Confronta comunque percorsi e condizioni simili: traffico, temperatura e pendenza possono cambiare i risultati. La colonna Δ è Viaggio B meno Viaggio A.",
   "differentModels": "Modelli diversi: score non direttamente comparabili",
   "differentSources": "Origini dei dati diverse",
   "metric": "Metrica",
@@ -153,6 +149,20 @@
   "favorableZones": "Zone favorevoli",
   "drivingEvents": "Eventi di guida",
   "mappedTime": "Tempo mappato",
+  "comparisonDuration": "Durata osservata",
+  "comparisonFuelLiters": "Carburante stimato · L",
+  "comparisonAverageSpeed": "Velocità media valida · km/h",
+  "comparisonEventRate": "Eventi bruschi · al minuto",
+  "comparisonMapCoverage": "Copertura mappa · %",
+  "comparisonSpeedCoverage": "Copertura velocità · %",
+  "comparisonFuelCoverage": "Copertura fuel rate · %",
+  "comparisonDelta": "Δ (B − A)",
+  "comparisonMetrics": "Riepilogo delle metriche",
+  "comparisonScoreBreakdown": "Confronto delle componenti dello score",
+  "comparisonMaps": "Distribuzione RPM–carico",
+  "comparisonHigherScore": "Score maggiore: {name} · {score}/100",
+  "comparisonSimilarScores": "Score sostanzialmente uguali",
+  "comparisonDifferentCoverage": "I due score usano componenti diverse perché alcuni dati OBD mancano in uno dei viaggi: il confronto del totale è indicativo.",
   "mapCsvColumns": "Associa le colonne del CSV",
   "time": "Tempo",
   "elapsedSeconds": "Tempo in secondi dall’inizio",
@@ -161,18 +171,18 @@
   "invalidOrigin": "Inserisci un inizio viaggio ISO con fuso, ad esempio 2026-10-01T10:00:00+02:00.",
   "importTrip": "Importa viaggio",
   "notPresent": "Non presente",
-  "engineMap": "La mappa del tuo motore",
-  "engineMapSubtitle": "Dove ha lavorato il motore, e con quale costo osservato.",
+  "engineMap": "Mappa RPM–carico",
+  "engineMapSubtitle": "Raggruppa i campioni del viaggio per regime motore e carico: ogni cella copre 500 rpm e 10% di carico.",
   "occupancy": "Permanenza",
   "fuel": "Carburante",
-  "relativeIndex": "Indice relativo",
+  "zoneFavorability": "Zone favorevoli",
   "penalty": "Penalità",
   "mapRequiresData": "Servono RPM e calculated load validi\nper costruire la mappa.",
   "occupancyLegend": "Da meno a più tempo · celle da 500 rpm × 10%",
   "fuelLegend": "Flusso medio in l/h · solo dati disponibili",
-  "relativeLegend": "Da 0 a 100 · favorevolezza secondo le regole",
+  "favorabilityLegend": "Da 0 a 100 · favorevolezza secondo le regole",
   "penaltyLegend": "Da 0 a 1 · costo medio delle zone",
-  "mapNotice": "Mappa delle condizioni osservate. L’indice relativo descrive le regole del modello: non misura il rendimento termico o la BSFC.",
+  "mapNotice": "È una distribuzione dei dati osservati durante il viaggio, non la mappa ECU né una misura di potenza o rendimento. Cambia colore selezionando tempo, flusso carburante, favorevolezza stimata o penalità media.",
   "loadAxis": "Carico %",
   "rpmAxis": "Regime motore · rpm",
   "timelineTitle": "Il viaggio, istante per istante",
@@ -251,15 +261,22 @@
   "simulator": "Simulatore OBD",
   "demoTrip": "Viaggio dimostrativo",
   "linkLostTripPaused": "Collegamento OBD perso dopo i tentativi di riconnessione. Il viaggio è in pausa: riconnetti l’adattatore e tocca Riprendi.",
-  "zoneReason": "Tempo ponderato nelle zone RPM–carico: costo 0, 0,5 o 1.",
-  "smoothReason": "−5 punti per evento al minuto; accelerazione derivata dalla velocità OBD.",
-  "economyExcluded": "Escluso: configura una baseline di viaggi comparabili per questo veicolo.",
+  "zoneReason": "Zona favorevole: {lowRpm} ≤ RPM < {highRpm} e 20% ≤ carico < {highLoad}%; costo 0,5 nelle altre zone e 1 ad alto regime o a bassi giri con carico elevato.",
+  "@zoneReason": { "placeholders": { "lowRpm": { "type": "String" }, "highRpm": { "type": "String" }, "highLoad": { "type": "String" } } },
+  "smoothReason": "−5 punti per evento al minuto; accelerazione derivata dalla velocità OBD. Soglie: +{acceleration} e −{braking} m/s².",
+  "@smoothReason": { "placeholders": { "acceleration": { "type": "String" }, "braking": { "type": "String" } } },
   "scoreRequiresData": "Servono almeno 5 secondi di dati validi per calcolare le componenti dello score.",
   "scoreNoMap": "Mappa non disponibile: RPM o carico mancanti. ",
-  "scoreWeightsNormalized": "I pesi delle componenti disponibili sono rinormalizzati. ",
+  "scoreWeightsNormalized": "Le componenti con meno di 5 secondi di dati validi sono escluse e i pesi rimanenti sono rinormalizzati. ",
+  "scoreFormula": "Media ponderata dei contributi: {formula}. ",
+  "@scoreFormula": { "placeholders": { "formula": { "type": "String" } } },
+  "scoreContribution": "{name} {value}/100 × {weight}% = {points} punti",
+  "@scoreContribution": { "placeholders": { "name": { "type": "String" }, "value": { "type": "String" }, "weight": { "type": "String" }, "points": { "type": "String" } } },
+  "scoreEventsDetailed": "Eventi inclusi: {accelerations} accelerazioni brusche e {brakings} frenate brusche, rilevate dalla velocità OBD. ",
+  "@scoreEventsDetailed": { "placeholders": { "accelerations": { "type": "String" }, "brakings": { "type": "String" } } },
   "saveSettingsFailed": "Impossibile salvare le impostazioni.",
   "finiteParameters": "I parametri devono essere numeri finiti.",
-  "invalidSettings": "Controlla pesi, soglie e baseline: i valori non sono validi.",
+  "invalidSettings": "Controlla pesi e soglie: i valori non sono validi.",
   "csvRequiresRows": "Il CSV deve contenere un’intestazione e almeno una riga.",
   "csvRowLimit": "Limite di importazione: 200.000 righe per viaggio.",
   "selectTimeColumn": "Seleziona la colonna del tempo.",
@@ -711,15 +728,7 @@
       }
     }
   },
-  "economyReason": "Rapporto rispetto alla baseline {baseline} l/100 km; richiede copertura ≥80% e distanza ≥100 m.",
-  "@economyReason": {
-    "placeholders": {
-      "baseline": {
-        "type": "String"
-      }
-    }
-  },
-  "scoreIntro": "Score {score}/100 su {components} componenti disponibili. ",
+  "scoreIntro": "Score {score}/100, media ponderata di {components} componenti di guida. ",
   "@scoreIntro": {
     "placeholders": {
       "score": {
@@ -730,7 +739,7 @@
       }
     }
   },
-  "scoreMapPortion": "{percent}% del tempo mappato in zone favorevoli secondo le regole configurate. ",
+  "scoreMapPortion": "{percent}% del tempo mappato è ricaduto nelle zone classificate favorevoli dalle soglie configurate. ",
   "@scoreMapPortion": {
     "placeholders": {
       "percent": {
@@ -738,15 +747,7 @@
       }
     }
   },
-  "scoreEventCount": "{count} eventi di accelerazione o frenata. ",
-  "@scoreEventCount": {
-    "placeholders": {
-      "count": {
-        "type": "String"
-      }
-    }
-  },
-  "scoreMapCoverage": "Copertura della mappa: {percent}%. Modello euristico, da calibrare su viaggi reali.",
+  "scoreMapCoverage": "Copertura RPM-carico: {percent}%. Il consumo è mostrato separatamente e non pesa nello score; il modello resta euristico.",
   "@scoreMapCoverage": {
     "placeholders": {
       "percent": {

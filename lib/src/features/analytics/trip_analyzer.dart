@@ -8,7 +8,6 @@ class ScoreConfig {
     this.zoneWeight = .40,
     this.smoothWeight = .25,
     this.warmupWeight = .20,
-    this.economyWeight = .15,
     this.warmTemperature = 70,
     this.highLoad = 75,
     this.coldLoad = 50,
@@ -16,18 +15,17 @@ class ScoreConfig {
     this.highRpm = 3500,
     this.hardAcceleration = 2.5,
     this.hardBraking = 3.0,
-    this.baselineConsumption = 0,
   });
-  static const version = 'rules-1.0.0';
-  final double zoneWeight, smoothWeight, warmupWeight, economyWeight;
+  static const version = 'rules-2.0.0';
+  static const _previousVersion = 'rules-1.0.0';
+  final double zoneWeight, smoothWeight, warmupWeight;
   final double warmTemperature, highLoad, coldLoad, lowRpm, highRpm;
-  final double hardAcceleration, hardBraking, baselineConsumption;
+  final double hardAcceleration, hardBraking;
   Map<String, Object> toJson() => {
     'version': version,
     'zoneWeight': zoneWeight,
     'smoothWeight': smoothWeight,
     'warmupWeight': warmupWeight,
-    'economyWeight': economyWeight,
     'warmTemperature': warmTemperature,
     'highLoad': highLoad,
     'coldLoad': coldLoad,
@@ -35,12 +33,11 @@ class ScoreConfig {
     'highRpm': highRpm,
     'hardAcceleration': hardAcceleration,
     'hardBraking': hardBraking,
-    'baselineConsumption': baselineConsumption,
   };
   String encode() => jsonEncode(toJson());
   factory ScoreConfig.decode(String value) {
     final j = jsonDecode(value) as Map<String, dynamic>;
-    if (j['version'] != version) {
+    if (j['version'] != version && j['version'] != _previousVersion) {
       throw FormatException('Modello ${j['version']} non supportato');
     }
     double number(String key) => (j[key] as num).toDouble();
@@ -48,7 +45,6 @@ class ScoreConfig {
       zoneWeight: number('zoneWeight'),
       smoothWeight: number('smoothWeight'),
       warmupWeight: number('warmupWeight'),
-      economyWeight: number('economyWeight'),
       warmTemperature: number('warmTemperature'),
       highLoad: number('highLoad'),
       coldLoad: number('coldLoad'),
@@ -56,7 +52,6 @@ class ScoreConfig {
       highRpm: number('highRpm'),
       hardAcceleration: number('hardAcceleration'),
       hardBraking: number('hardBraking'),
-      baselineConsumption: number('baselineConsumption'),
     )..validate();
   }
   void validate() {
@@ -65,13 +60,8 @@ class ScoreConfig {
         throw const FormatException('I parametri devono essere numeri finiti.');
       }
     }
-    if ([
-          zoneWeight,
-          smoothWeight,
-          warmupWeight,
-          economyWeight,
-        ].any((v) => v < 0) ||
-        zoneWeight + smoothWeight + warmupWeight + economyWeight <= 0 ||
+    if ([zoneWeight, smoothWeight, warmupWeight].any((v) => v < 0) ||
+        zoneWeight + smoothWeight + warmupWeight <= 0 ||
         lowRpm < 500 ||
         highRpm <= lowRpm ||
         highRpm > 12000 ||
@@ -82,11 +72,9 @@ class ScoreConfig {
         warmTemperature < 20 ||
         warmTemperature > 120 ||
         hardAcceleration <= 0 ||
-        hardBraking <= 0 ||
-        baselineConsumption < 0 ||
-        baselineConsumption > 50) {
+        hardBraking <= 0) {
       throw const FormatException(
-        'Controlla pesi, soglie e baseline: i valori non sono validi.',
+        'Controlla pesi e soglie: i valori non sono validi.',
       );
     }
   }
@@ -112,7 +100,7 @@ class OperatingCell {
   double? get meanThrottle =>
       _throttleSeconds > 0 ? _throttle / _throttleSeconds : null;
   double get penalty => seconds > 0 ? penaltySeconds / seconds : 0;
-  double get relativeIndex => (1 - penalty) * 100;
+  double get zoneFavorability => (1 - penalty) * 100;
   void add(TelemetryFrame f, double dt, double penalty) {
     samples++;
     seconds += dt;
@@ -169,7 +157,6 @@ class TripAnalysis {
     required this.speedCoverage,
     required this.fuelCoverage,
     required this.duplicates,
-    required this.explanation,
   });
   final List<TelemetryFrame> frames;
   final List<OperatingCell> cells;
@@ -182,7 +169,6 @@ class TripAnalysis {
       fuelCoverage;
   final double? distanceKm, fuelLiters, consumption, score;
   final int duplicates;
-  final String explanation;
   double get effectiveWeight =>
       parts.where((p) => p.value != null).fold(0.0, (a, p) => a + p.weight);
 }
@@ -314,13 +300,16 @@ abstract final class TripAnalyzer {
     final consumption = jointDistance >= .1 && coverage(jointTime) >= .8
         ? jointFuel / jointDistance * 100
         : null;
+    String threshold(double value) => value == value.roundToDouble()
+        ? value.toStringAsFixed(0)
+        : value.toString();
     final parts = [
       ScorePart(
         'Zone operative',
         mapTime >= 5 ? clamp(100 * (1 - zoneCost / mapTime)) : null,
         config.zoneWeight,
         coverage(mapTime),
-        'Tempo ponderato nelle zone RPM–carico: costo 0, 0,5 o 1.',
+        'Zone favorevoli: RPM ${threshold(config.lowRpm)}–${threshold(config.highRpm)} e carico 20–${threshold(config.highLoad)}%; costo 0,5 nelle altre zone e 1 in alto regime o con carico elevato a bassi giri.',
       ),
       ScorePart(
         'Regolarità',
@@ -329,7 +318,7 @@ abstract final class TripAnalyzer {
             : null,
         config.smoothWeight,
         coverage(smoothTime),
-        '−5 punti per evento al minuto; accelerazione derivata dalla velocità OBD.',
+        '−5 punti per evento al minuto; accelerazione da velocità OBD, soglie ${config.hardAcceleration} e ${config.hardBraking} m/s².',
       ),
       ScorePart(
         'Riscaldamento',
@@ -338,19 +327,6 @@ abstract final class TripAnalyzer {
         coverage(warmTime),
         'Penalità per carico oltre ${config.coldLoad.round()}% sotto ${config.warmTemperature.round()} °C, sul tempo osservato.',
       ),
-      ScorePart(
-        'Consumo relativo',
-        consumption != null && config.baselineConsumption > 0
-            ? clamp(
-                100 * config.baselineConsumption / math.max(consumption, .01),
-              )
-            : null,
-        config.economyWeight,
-        coverage(jointTime),
-        config.baselineConsumption <= 0
-            ? 'Escluso: configura una baseline di viaggi comparabili per questo veicolo.'
-            : 'Rapporto rispetto alla baseline ${config.baselineConsumption.toStringAsFixed(1)} l/100 km; richiede copertura ≥80% e distanza ≥100 m.',
-      ),
     ];
     final active = parts.where((p) => p.value != null && p.weight > 0);
     final weight = active.fold(0.0, (s, p) => s + p.weight);
@@ -358,13 +334,6 @@ abstract final class TripAnalyzer {
         ? active.fold(0.0, (s, p) => s + p.value! * p.weight) / weight
         : null;
     final favorableFraction = mapTime > 0 ? favorable / mapTime : 0.0;
-    final text = score == null
-        ? 'Servono almeno 5 secondi di dati validi per calcolare le componenti dello score.'
-        : 'Score ${score.round()}/100 su ${active.length} componenti disponibili. '
-              '${mapTime > 0 ? '${(favorableFraction * 100).round()}% del tempo mappato in zone favorevoli secondo le regole configurate. ' : 'Mappa non disponibile: RPM o carico mancanti. '}'
-              '${events.length} eventi di accelerazione o frenata. '
-              '${parts.any((p) => p.value == null) ? 'I pesi delle componenti disponibili sono rinormalizzati. ' : ''}'
-              'Copertura della mappa: ${(coverage(mapTime) * 100).round()}%. Modello euristico, da calibrare su viaggi reali.';
     return TripAnalysis(
       frames: frames,
       cells: cells.values.toList(),
@@ -380,7 +349,6 @@ abstract final class TripAnalyzer {
       speedCoverage: coverage(speedTime),
       fuelCoverage: coverage(fuelTime),
       duplicates: duplicates,
-      explanation: text,
     );
   }
 

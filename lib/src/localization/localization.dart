@@ -83,8 +83,12 @@ extension PresentationMessages on AppLocalizations {
         (m) => warmupReason(m[1]!, m[2]!),
       ),
       (
-        r'^Rapporto rispetto alla baseline ([\d.]+) l/100 km; richiede copertura ≥80% e distanza ≥100 m\.$',
-        (m) => economyReason(m[1]!),
+        r'^Zone favorevoli: RPM ([\d.]+)–([\d.]+) e carico 20–([\d.]+)%; costo 0,5 nelle altre zone e 1 in alto regime o con carico elevato a bassi giri\.$',
+        (m) => zoneReason(m[1]!, m[2]!, m[3]!),
+      ),
+      (
+        r'^−5 punti per evento al minuto; accelerazione da velocità OBD, soglie ([\d.]+) e ([\d.]+) m/s²\.$',
+        (m) => smoothReason(m[1]!, m[2]!),
       ),
       (r'^Modello (.+) non supportato$', (m) => unsupportedModel(m[1]!)),
       (
@@ -119,14 +123,32 @@ extension PresentationMessages on AppLocalizations {
   String analysisExplanation(TripAnalysis analysis) {
     if (analysis.score == null) return scoreRequiresData;
     final active = analysis.parts.where((p) => p.value != null && p.weight > 0);
+    final totalWeight = analysis.effectiveWeight;
     final coverage = analysis.duration > 0
         ? (analysis.validMapSeconds / analysis.duration).clamp(0, 1)
         : 0.0;
+    final formula = active
+        .map(
+          (part) => scoreContribution(
+            message(part.name),
+            part.value!.toStringAsFixed(1),
+            (part.weight / totalWeight * 100).toStringAsFixed(1),
+            (part.value! * part.weight / totalWeight).toStringAsFixed(1),
+          ),
+        )
+        .join(' + ');
+    final accelerations = analysis.events
+        .where((event) => event.label == 'Accelerazione brusca')
+        .length;
+    final braking = analysis.events
+        .where((event) => event.label == 'Frenata brusca')
+        .length;
     return scoreIntro('${analysis.score!.round()}', '${active.length}') +
+        scoreFormula(formula) +
         (analysis.validMapSeconds > 0
             ? scoreMapPortion('${(analysis.favorableFraction * 100).round()}')
             : scoreNoMap) +
-        scoreEventCount('${analysis.events.length}') +
+        scoreEventsDetailed('$accelerations', '$braking') +
         (analysis.parts.any((p) => p.value == null)
             ? scoreWeightsNormalized
             : '') +

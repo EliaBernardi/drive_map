@@ -31,10 +31,8 @@ final analysisProvider = FutureProvider.family<TripAnalysis, String>((
   id,
 ) async {
   final data = await ref.watch(tripDetailProvider(id).future);
-  return TripAnalyzer.analyze(
-    data.frames,
-    ScoreConfig.decode(data.trip.configJson),
-  );
+  final config = await ref.watch(settingsProvider.future);
+  return TripAnalyzer.analyze(data.frames, config);
 });
 
 final settingsProvider = AsyncNotifierProvider<SettingsController, ScoreConfig>(
@@ -561,10 +559,8 @@ class DashboardController extends Notifier<DashboardState> {
       await _flush();
       await _flush();
       final data = await _database!.detail(id);
-      final analysis = TripAnalyzer.analyze(
-        data.frames,
-        ScoreConfig.decode(data.trip.configJson),
-      );
+      final config = await ref.read(settingsProvider.future);
+      final analysis = TripAnalyzer.analyze(data.frames, config);
       await _database!.transaction(() async {
         await _database!.saveAnalysis(id, analysis);
         await _database!.setStatus(
