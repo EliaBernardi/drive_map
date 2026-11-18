@@ -12,7 +12,7 @@ import 'package:drive_map/src/presentation/adapter_check_screen.dart';
 import 'package:drive_map/src/presentation/profile_screen.dart';
 import 'package:drive_map/src/presentation/trips_screen.dart';
 import 'package:drive_map/src/providers.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

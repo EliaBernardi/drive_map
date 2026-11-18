@@ -5,7 +5,7 @@ import 'package:drive_map/src/features/obd/obd_session.dart';
 import 'package:drive_map/src/providers.dart';
 import 'package:drive_map/src/localization/locale_controller.dart';
 import 'package:drive_map/src/localization/localization.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';

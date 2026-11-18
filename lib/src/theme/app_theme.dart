@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Shared palette for screens, charts and the app shell.
 abstract final class DriveColors {
