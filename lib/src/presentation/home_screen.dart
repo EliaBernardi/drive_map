@@ -32,12 +32,10 @@ class HomeScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionTitle(
-            context.l10n.homeTitle,
-            subtitle: context.l10n.homeSubtitle,
-          ),
+          SectionTitle(context.l10n.homeTitle),
           Panel(
             padding: 20,
+            verticalPadding: 8,
             color: DriveColors.mint,
             child: Row(
               children: [
@@ -45,16 +43,6 @@ class HomeScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        context.l10n.garage,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.w700,
-                          color: DriveColors.accent,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
                       const Text(
                         'Ford Fiesta',
                         style: TextStyle(
@@ -254,6 +242,7 @@ class HomeScreen extends ConsumerWidget {
             .toList()
           ..sort((a, b) => a.name.compareTo(b.name));
     return Panel(
+      bottomPadding: 12,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -278,16 +267,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 20),
-          Text(
-            state.connection.ready
-                ? state.demo
-                      ? context.l10n.simulator
-                      : state.deviceName
-                : 'OBDLink MX+',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           Text(
             context.l10n.message(state.connection.message),
             style: const TextStyle(color: DriveColors.muted, height: 1.5),
@@ -330,15 +310,6 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
           ] else ...[
-            Text(
-              context.l10n.connectInstructions,
-              style: const TextStyle(
-                color: DriveColors.muted,
-                height: 1.9,
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(height: 20),
             if (PlatformObdTransport.discoverySupported)
               Wrap(
                 spacing: 10,
@@ -479,15 +450,6 @@ class HomeScreen extends ConsumerWidget {
                 onPressed: state.busy ? c.cancelConnection : c.disconnect,
                 child: Text(context.l10n.cancelConnection),
               ),
-            const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed:
-                  connecting || state.busy || (state.hasTrip && !state.demo)
-                  ? null
-                  : () => c.connect(demo: true),
-              icon: const Icon(Icons.science_outlined, size: 18),
-              label: Text(context.l10n.exploreDemo),
-            ),
           ],
         ],
       ),

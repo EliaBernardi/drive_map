@@ -31,7 +31,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offline => 'Offline';
 
   @override
-  String get homeTitle => 'Ready to go?';
+  String get homeTitle => 'Your car';
 
   @override
   String get homeSubtitle => 'Your car, one trip at a time.';
@@ -85,7 +85,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get savedOpenArchive => 'Trip saved · open archive';
 
   @override
-  String get obdConnection => 'OBD connection';
+  String get obdConnection => 'OBDLink MX+ connection';
 
   @override
   String get validReadings => 'Valid readings';
@@ -116,7 +116,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pairDevice => 'Pair device';
 
   @override
-  String get desktopNotice => 'On desktop: import trips or explore the demo.';
+  String get desktopNotice => 'On desktop: import trips.';
 
   @override
   String get diagnosticsLogs => 'OBD diagnostics and logs';
@@ -128,16 +128,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exploreDemo => 'Explore the demo';
 
   @override
-  String get telemetryTitle => 'Your engine, live.';
-
-  @override
-  String get telemetrySubtitle => 'A look at the ECU readings.';
-
-  @override
-  String get waitingCar => 'Waiting for your car';
-
-  @override
-  String get connectFromHome => 'Connect from Home';
+  String get telemetryTitle => 'Live telemetry';
 
   @override
   String get recordingInProgress => 'Recording in progress';
@@ -167,10 +158,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get screenRefresh => 'Screen updated every 0.5 s';
 
   @override
-  String get profileTitle => 'Your vehicle.';
-
-  @override
-  String get profileSubtitle => 'Your Fiesta and its onboard tools.';
+  String get profileTitle => 'Your profile';
 
   @override
   String get engine => 'Engine';
@@ -313,11 +301,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelSaved => 'Model saved for future trips.';
 
   @override
-  String get tripsTitle => 'Every trip has a story.';
-
-  @override
-  String get tripsSubtitle =>
-      'Find your trips, explore the engine and compare results.';
+  String get tripsTitle => 'Your trips';
 
   @override
   String get importing => 'Importing…';
@@ -510,8 +494,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get comparisonMaps => 'RPM–load distribution';
 
   @override
-  String comparisonHigherScore(String name, String score) =>
-      'Higher score: $name · $score/100';
+  String comparisonHigherScore(Object name, Object score) {
+    return 'Higher score: $name · $score/100';
+  }
 
   @override
   String get comparisonSimilarScores => 'Scores are effectively tied';
@@ -831,12 +816,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'OBD connection lost after reconnection attempts. The trip is paused: reconnect the adapter and tap Resume.';
 
   @override
-  String zoneReason(String lowRpm, String highRpm, String highLoad) =>
-      'Favorable zone: $lowRpm ≤ RPM < $highRpm and 20% ≤ load < $highLoad%; cost 0.5 elsewhere and 1 at high RPM or low RPM with high load.';
+  String zoneReason(String lowRpm, String highRpm, String highLoad) {
+    return 'Favorable zone: $lowRpm ≤ RPM < $highRpm and 20% ≤ load < $highLoad%; cost 0.5 elsewhere and 1 at high RPM or low RPM with high load.';
+  }
 
   @override
-  String smoothReason(String acceleration, String braking) =>
-      '−5 points per event per minute; acceleration derived from OBD speed. Thresholds: +$acceleration and −$braking m/s².';
+  String smoothReason(String acceleration, String braking) {
+    return '−5 points per event per minute; acceleration derived from OBD speed. Thresholds: +$acceleration and −$braking m/s².';
+  }
 
   @override
   String get scoreRequiresData =>
@@ -848,6 +835,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get scoreWeightsNormalized =>
       'Components with less than 5 seconds of valid data are excluded and remaining weights are normalized. ';
+
+  @override
+  String scoreFormula(String formula) {
+    return 'Weighted contribution: $formula. ';
+  }
+
+  @override
+  String scoreContribution(
+    String name,
+    String value,
+    String weight,
+    String points,
+  ) {
+    return '$name $value/100 × $weight% = $points points';
+  }
+
+  @override
+  String scoreEventsDetailed(String accelerations, String brakings) {
+    return 'Events included: $accelerations hard accelerations and $brakings hard brakes, derived from OBD speed. ';
+  }
 
   @override
   String get saveSettingsFailed => 'Could not save settings.';
@@ -1230,26 +1237,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String scoreIntro(String score, String components) {
     return 'Score $score/100, a weighted average of $components driving components. ';
-  }
-
-  @override
-  String scoreFormula(String formula) {
-    return 'Weighted contribution: $formula. ';
-  }
-
-  @override
-  String scoreContribution(
-    String name,
-    String value,
-    String weight,
-    String points,
-  ) {
-    return '$name $value/100 × $weight% = $points points';
-  }
-
-  @override
-  String scoreEventsDetailed(String accelerations, String brakings) {
-    return 'Events included: $accelerations hard accelerations and $brakings hard brakes, derived from OBD speed. ';
   }
 
   @override

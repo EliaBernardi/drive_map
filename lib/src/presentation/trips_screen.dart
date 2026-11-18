@@ -34,10 +34,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionTitle(
-            context.l10n.tripsTitle,
-            subtitle: context.l10n.tripsSubtitle,
-          ),
+          SectionTitle(context.l10n.tripsTitle),
           Wrap(
             spacing: 12,
             runSpacing: 12,

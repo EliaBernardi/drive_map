@@ -22,13 +22,9 @@ class ProfileScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionTitle(
-            context.l10n.profileTitle,
-            subtitle: context.l10n.profileSubtitle,
-          ),
-          const _LanguagePicker(),
-          const SizedBox(height: 20),
+          SectionTitle(context.l10n.profileTitle),
           Panel(
+            padding: 18,
             child: Column(
               children: [
                 const DriveMapLogo(size: 128),
@@ -61,6 +57,8 @@ class ProfileScreen extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 20),
+          const _LanguagePicker(),
           const SizedBox(height: 20),
           Panel(
             padding: 20,
@@ -126,7 +124,24 @@ class _LanguagePicker extends ConsumerStatefulWidget {
 
 class _LanguagePickerState extends ConsumerState<_LanguagePicker> {
   bool _saving = false;
-  int _selectionVersion = 0;
+
+  Future<void> _selectLanguage(String value) async {
+    if (_saving ||
+        ref.read(localeProvider).asData?.value.languageCode == value) {
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await ref.read(localeProvider.notifier).select(value);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.languageSaveFailed)));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,47 +174,25 @@ class _LanguagePickerState extends ConsumerState<_LanguagePicker> {
             style: const TextStyle(color: DriveColors.muted, height: 1.5),
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            // Recreate only this form field when restoration/selection changes.
-            key: ValueKey(
-              'app-language-${language.asData?.value.languageCode ?? 'loading'}-$_selectionVersion',
-            ),
-            initialValue: language.asData?.value.languageCode ?? 'it',
-            isExpanded: true,
-            decoration: InputDecoration(labelText: context.l10n.language),
-            items: [
-              DropdownMenuItem(
-                value: 'it',
-                child: Text(context.l10n.languageItalian),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _LanguageFlagButton(
+                flag: '🇮🇹',
+                label: context.l10n.languageItalian,
+                selected: language.asData?.value.languageCode == 'it',
+                enabled: !_saving && language.asData != null,
+                onTap: () => _selectLanguage('it'),
               ),
-              DropdownMenuItem(
-                value: 'en',
-                child: Text(context.l10n.languageEnglish),
+              const SizedBox(width: 24),
+              _LanguageFlagButton(
+                flag: '🇬🇧',
+                label: context.l10n.languageEnglish,
+                selected: language.asData?.value.languageCode == 'en',
+                enabled: !_saving && language.asData != null,
+                onTap: () => _selectLanguage('en'),
               ),
             ],
-            onChanged: _saving || language.asData == null
-                ? null
-                : (value) async {
-                    if (value == null ||
-                        value == language.asData?.value.languageCode) {
-                      return;
-                    }
-                    setState(() => _saving = true);
-                    try {
-                      await ref.read(localeProvider.notifier).select(value);
-                    } catch (_) {
-                      if (!context.mounted) return;
-                      // Restore the displayed selection if persistence failed.
-                      _selectionVersion++;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(context.l10n.languageSaveFailed),
-                        ),
-                      );
-                    } finally {
-                      if (mounted) setState(() => _saving = false);
-                    }
-                  },
           ),
           if (language.hasError) ...[
             const SizedBox(height: 10),
@@ -210,6 +203,70 @@ class _LanguagePickerState extends ConsumerState<_LanguagePicker> {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _LanguageFlagButton extends StatelessWidget {
+  const _LanguageFlagButton({
+    required this.flag,
+    required this.label,
+    required this.selected,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final String flag;
+  final String label;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = selected ? 72.0 : 62.0;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: enabled ? onTap : null,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              width: size,
+              height: size,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: selected ? DriveColors.mint : Colors.transparent,
+                border: Border.all(
+                  color: selected
+                      ? DriveColors.accent
+                      : Theme.of(context).colorScheme.outlineVariant,
+                  width: selected ? 2.5 : 1,
+                ),
+                boxShadow: selected
+                    ? [
+                        BoxShadow(
+                          color: DriveColors.accent.withValues(alpha: .15),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Text(flag, style: TextStyle(fontSize: selected ? 34 : 30)),
+            ),
+          ),
+        ),
       ),
     );
   }

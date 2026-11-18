@@ -6,9 +6,18 @@ import '../theme/app_theme.dart';
 export '../theme/app_theme.dart' show DriveColors;
 
 class Panel extends StatelessWidget {
-  const Panel({super.key, required this.child, this.padding = 24, this.color});
+  const Panel({
+    super.key,
+    required this.child,
+    this.padding = 24,
+    this.verticalPadding,
+    this.bottomPadding,
+    this.color,
+  });
   final Widget child;
   final double padding;
+  final double? verticalPadding;
+  final double? bottomPadding;
   final Color? color;
   @override
   Widget build(BuildContext context) => Container(
@@ -25,7 +34,13 @@ class Panel extends StatelessWidget {
         side: const BorderSide(color: DriveColors.border),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Padding(padding: EdgeInsets.all(padding), child: child),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: padding).copyWith(
+          top: verticalPadding ?? padding,
+          bottom: bottomPadding ?? verticalPadding ?? padding,
+        ),
+        child: child,
+      ),
     ),
   );
 }

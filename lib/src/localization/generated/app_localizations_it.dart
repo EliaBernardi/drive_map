@@ -31,7 +31,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get offline => 'Offline';
 
   @override
-  String get homeTitle => 'Si parte?';
+  String get homeTitle => 'La tua auto';
 
   @override
   String get homeSubtitle => 'La tua auto, un viaggio alla volta.';
@@ -85,7 +85,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get savedOpenArchive => 'Viaggio salvato · apri archivio';
 
   @override
-  String get obdConnection => 'Connessione OBD';
+  String get obdConnection => 'Connessione OBDLink MX+';
 
   @override
   String get validReadings => 'Letture valide';
@@ -116,7 +116,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get pairDevice => 'Associa dispositivo';
 
   @override
-  String get desktopNotice => 'Su desktop: importa i viaggi o esplora la demo.';
+  String get desktopNotice => 'Su desktop: importa i viaggi.';
 
   @override
   String get diagnosticsLogs => 'Diagnostica e log OBD';
@@ -128,16 +128,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get exploreDemo => 'Esplora con la demo';
 
   @override
-  String get telemetryTitle => 'Il motore, dal vivo.';
-
-  @override
-  String get telemetrySubtitle => 'Uno sguardo ai valori della centralina.';
-
-  @override
-  String get waitingCar => 'In attesa della tua auto';
-
-  @override
-  String get connectFromHome => 'Collega dalla Home';
+  String get telemetryTitle => 'Telemetria live';
 
   @override
   String get recordingInProgress => 'Registrazione in corso';
@@ -168,10 +159,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get screenRefresh => 'Schermo aggiornato ogni 0,5 s';
 
   @override
-  String get profileTitle => 'Il tuo veicolo.';
-
-  @override
-  String get profileSubtitle => 'La tua Fiesta e gli strumenti di bordo.';
+  String get profileTitle => 'Il tuo profilo';
 
   @override
   String get engine => 'Motore';
@@ -313,11 +301,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get modelSaved => 'Modello salvato per i prossimi viaggi.';
 
   @override
-  String get tripsTitle => 'Ogni viaggio ha una storia.';
-
-  @override
-  String get tripsSubtitle =>
-      'Ritrova i percorsi, esplora il motore e confronta i risultati.';
+  String get tripsTitle => 'I tuoi viaggi';
 
   @override
   String get importing => 'Importazione…';
@@ -512,8 +496,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get comparisonMaps => 'Distribuzione RPM–carico';
 
   @override
-  String comparisonHigherScore(String name, String score) =>
-      'Score maggiore: $name · $score/100';
+  String comparisonHigherScore(Object name, Object score) {
+    return 'Score maggiore: $name · $score/100';
+  }
 
   @override
   String get comparisonSimilarScores => 'Score sostanzialmente uguali';
@@ -836,12 +821,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Collegamento OBD perso dopo i tentativi di riconnessione. Il viaggio è in pausa: riconnetti l’adattatore e tocca Riprendi.';
 
   @override
-  String zoneReason(String lowRpm, String highRpm, String highLoad) =>
-      'Zona favorevole: $lowRpm ≤ RPM < $highRpm e 20% ≤ carico < $highLoad%; costo 0,5 nelle altre zone e 1 ad alto regime o a bassi giri con carico elevato.';
+  String zoneReason(String lowRpm, String highRpm, String highLoad) {
+    return 'Zona favorevole: $lowRpm ≤ RPM < $highRpm e 20% ≤ carico < $highLoad%; costo 0,5 nelle altre zone e 1 ad alto regime o a bassi giri con carico elevato.';
+  }
 
   @override
-  String smoothReason(String acceleration, String braking) =>
-      '−5 punti per evento al minuto; accelerazione derivata dalla velocità OBD. Soglie: +$acceleration e −$braking m/s².';
+  String smoothReason(String acceleration, String braking) {
+    return '−5 punti per evento al minuto; accelerazione derivata dalla velocità OBD. Soglie: +$acceleration e −$braking m/s².';
+  }
 
   @override
   String get scoreRequiresData =>
@@ -853,6 +840,26 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get scoreWeightsNormalized =>
       'Le componenti con meno di 5 secondi di dati validi sono escluse e i pesi rimanenti sono rinormalizzati. ';
+
+  @override
+  String scoreFormula(String formula) {
+    return 'Media ponderata dei contributi: $formula. ';
+  }
+
+  @override
+  String scoreContribution(
+    String name,
+    String value,
+    String weight,
+    String points,
+  ) {
+    return '$name $value/100 × $weight% = $points punti';
+  }
+
+  @override
+  String scoreEventsDetailed(String accelerations, String brakings) {
+    return 'Eventi inclusi: $accelerations accelerazioni brusche e $brakings frenate brusche, rilevate dalla velocità OBD. ';
+  }
 
   @override
   String get saveSettingsFailed => 'Impossibile salvare le impostazioni.';
@@ -1239,26 +1246,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String scoreIntro(String score, String components) {
     return 'Score $score/100, media ponderata di $components componenti di guida. ';
-  }
-
-  @override
-  String scoreFormula(String formula) {
-    return 'Media ponderata dei contributi: $formula. ';
-  }
-
-  @override
-  String scoreContribution(
-    String name,
-    String value,
-    String weight,
-    String points,
-  ) {
-    return '$name $value/100 × $weight% = $points punti';
-  }
-
-  @override
-  String scoreEventsDetailed(String accelerations, String brakings) {
-    return 'Eventi inclusi: $accelerations accelerazioni brusche e $brakings frenate brusche, rilevate dalla velocità OBD. ';
   }
 
   @override

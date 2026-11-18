@@ -22,23 +22,7 @@ class TelemetryScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionTitle(
-            context.l10n.telemetryTitle,
-            subtitle: context.l10n.telemetrySubtitle,
-          ),
-          if (!state.connection.ready) ...[
-            EmptyPanel(
-              icon: Icons.bluetooth_searching_rounded,
-              title: context.l10n.waitingCar,
-              message: context.l10n.message(state.connection.message),
-              action: FilledButton.icon(
-                onPressed: onHome,
-                icon: const Icon(Icons.home_rounded),
-                label: Text(context.l10n.connectFromHome),
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+          SectionTitle(context.l10n.telemetryTitle),
           if (state.hasTrip) ...[
             Panel(
               padding: 14,
@@ -85,7 +69,7 @@ class TelemetryScreen extends ConsumerWidget {
                   for (final pid in [
                     Pid.load,
                     Pid.throttle,
-                    Pid.coolant,
+                    Pid.fuelLevel,
                     Pid.fuelRate,
                     Pid.manifold,
                     Pid.voltage,
@@ -100,7 +84,7 @@ class TelemetryScreen extends ConsumerWidget {
                         ),
                         pid.unit,
                         icon: switch (pid) {
-                          Pid.coolant => Icons.thermostat_rounded,
+                          Pid.fuelLevel => Icons.local_gas_station_rounded,
                           Pid.fuelRate => Icons.local_gas_station_outlined,
                           Pid.load => Icons.speed_rounded,
                           Pid.manifold => Icons.air_rounded,
@@ -165,6 +149,7 @@ class _LivePanel extends StatelessWidget {
   final DashboardState state;
   @override
   Widget build(BuildContext context) => Panel(
+    padding: 18,
     child: Column(
       children: [
         Row(
@@ -183,7 +168,11 @@ class _LivePanel extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             StatusPill(
-              state.recording ? 'REC' : 'LIVE',
+              state.recording
+                  ? 'REC'
+                  : state.connection.ready
+                  ? 'LIVE'
+                  : 'OFFLINE',
               color: state.recording ? DriveColors.red : DriveColors.muted,
             ),
           ],
@@ -192,47 +181,51 @@ class _LivePanel extends StatelessWidget {
         SizedBox(
           height: 218,
           width: double.infinity,
-          child: CustomPaint(
-            painter: _GaugePainter(state.frame?[Pid.speed]),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    number(state.frame?[Pid.speed]),
-                    style: const TextStyle(
-                      fontSize: 76,
-                      height: 1,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -2,
-                    ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 7,
+                child: Transform.translate(
+                  offset: const Offset(4, 0),
+                  child: _RadialGauge(
+                    label: context.l10n.pidLabel(Pid.rpm.code),
+                    value: state.frame?[Pid.rpm],
+                    maximum: 8000,
+                    maximumLabel: '8k',
+                    unit: 'rpm',
+                    color: DriveColors.grass,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'km/h',
-                    style: TextStyle(
-                      color: DriveColors.muted,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+              Expanded(
+                flex: 13,
+                child: _RadialGauge(
+                  label: context.l10n.pidLabel(Pid.speed.code),
+                  value: state.frame?[Pid.speed],
+                  maximum: 220,
+                  maximumLabel: '220',
+                  unit: 'km/h',
+                  color: DriveColors.accent,
+                  prominent: true,
+                ),
+              ),
+              Expanded(
+                flex: 7,
+                child: Transform.translate(
+                  offset: const Offset(-4, 0),
+                  child: _RadialGauge(
+                    label: context.l10n.pidLabel(Pid.coolant.code),
+                    value: state.frame?[Pid.coolant],
+                    maximum: 130,
+                    maximumLabel: '130',
+                    unit: '°C',
+                    color: DriveColors.amber,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.speed, color: DriveColors.accent, size: 20),
-            const SizedBox(width: 10),
-            Text(
-              number(state.frame?[Pid.rpm]),
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(width: 8),
-            const Text('rpm', style: TextStyle(color: DriveColors.muted)),
-          ],
         ),
         const SizedBox(height: 8),
         Text(
@@ -246,22 +239,172 @@ class _LivePanel extends StatelessWidget {
   );
 }
 
-class _GaugePainter extends CustomPainter {
-  _GaugePainter(this.speed);
-  final double? speed;
+class _RadialGauge extends StatelessWidget {
+  const _RadialGauge({
+    required this.label,
+    required this.value,
+    required this.maximum,
+    required this.maximumLabel,
+    required this.unit,
+    required this.color,
+    this.prominent = false,
+  });
+
+  final String label;
+  final double? value;
+  final double maximum;
+  final String maximumLabel;
+  final String unit;
+  final Color color;
+  final bool prominent;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.symmetric(horizontal: prominent ? 2 : 1),
+    child: Column(
+      children: [
+        SizedBox(
+          height: 24,
+          child: Center(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: DriveColors.muted,
+                fontSize: prominent ? 12 : 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              final height = constraints.maxHeight;
+              final radius = math.min(width, height) / 2 - 7;
+              final endpointOffset = radius * math.sqrt(.5);
+              final labelWidth = prominent ? 38.0 : 26.0;
+              final labelTop = height / 2 + endpointOffset + 3;
+              final startX = width / 2 - endpointOffset - labelWidth / 2;
+              final endX = width / 2 + endpointOffset - labelWidth / 2;
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  CustomPaint(
+                    painter: _DialPainter(
+                      value: value,
+                      maximum: maximum,
+                      color: color,
+                      ticks: prominent ? 45 : 31,
+                      prominent: prominent,
+                    ),
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: prominent ? 20 : 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              number(value),
+                              style: TextStyle(
+                                fontSize: prominent ? 70 : 21,
+                                height: 1,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: prominent ? -2 : -.5,
+                                color: DriveColors.ink,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            unit,
+                            style: TextStyle(
+                              color: DriveColors.muted,
+                              fontSize: prominent ? 12 : 9,
+                              letterSpacing: prominent ? 1.4 : .3,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: startX,
+                    top: labelTop,
+                    width: labelWidth,
+                    child: Text(
+                      '0',
+                      textAlign: TextAlign.center,
+                      style: _scaleStyle,
+                    ),
+                  ),
+                  Positioned(
+                    left: endX,
+                    top: labelTop,
+                    width: labelWidth,
+                    child: Text(
+                      maximumLabel,
+                      textAlign: TextAlign.center,
+                      style: _scaleStyle,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
+    ),
+  );
+
+  static const _scaleStyle = TextStyle(
+    color: DriveColors.muted,
+    fontSize: 9,
+    height: 1,
+  );
+}
+
+class _DialPainter extends CustomPainter {
+  const _DialPainter({
+    required this.value,
+    required this.maximum,
+    required this.color,
+    required this.ticks,
+    required this.prominent,
+  });
+
+  final double? value;
+  final double maximum;
+  final Color color;
+  final int ticks;
+  final bool prominent;
+
   @override
   void paint(Canvas canvas, Size size) {
-    final radius = math.min(size.width / 2 - 12, 104.0);
-    final center = Offset(size.width / 2, size.height / 2 + 6);
-    for (var i = 0; i < 45; i++) {
-      final angle = math.pi * .75 + (math.pi * 1.5 * i / 44);
-      final active = speed != null && i / 44 < speed! / 180;
+    final radius = math.max(0.0, math.min(size.width, size.height) / 2 - 7);
+    final center = Offset(size.width / 2, size.height / 2);
+    final fraction = value == null ? 0.0 : (value! / maximum).clamp(0.0, 1.0);
+    final start = math.pi * .75;
+    final sweep = math.pi * 1.5;
+    for (var i = 0; i < ticks; i++) {
+      final position = i / (ticks - 1);
+      final angle = start + sweep * position;
+      final active = value != null && value! >= 0 && position <= fraction;
+      final tickLength = prominent ? 10.0 : 7.0;
       final paint = Paint()
-        ..color = active ? DriveColors.accent : DriveColors.border
-        ..strokeWidth = 3
+        ..color = active ? color : DriveColors.border
+        ..strokeWidth = prominent ? 3 : 2.2
         ..strokeCap = StrokeCap.round;
       canvas.drawLine(
-        center + Offset(math.cos(angle), math.sin(angle)) * (radius - 11),
+        center +
+            Offset(math.cos(angle), math.sin(angle)) * (radius - tickLength),
         center + Offset(math.cos(angle), math.sin(angle)) * radius,
         paint,
       );
@@ -269,5 +412,10 @@ class _GaugePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_GaugePainter oldDelegate) => oldDelegate.speed != speed;
+  bool shouldRepaint(_DialPainter oldDelegate) =>
+      oldDelegate.value != value ||
+      oldDelegate.maximum != maximum ||
+      oldDelegate.color != color ||
+      oldDelegate.ticks != ticks ||
+      oldDelegate.prominent != prominent;
 }

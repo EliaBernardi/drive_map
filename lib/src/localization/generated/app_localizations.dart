@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeTitle.
   ///
   /// In it, this message translates to:
-  /// **'Si parte?'**
+  /// **'La tua auto'**
   String get homeTitle;
 
   /// No description provided for @homeSubtitle.
@@ -245,7 +245,7 @@ abstract class AppLocalizations {
   /// No description provided for @obdConnection.
   ///
   /// In it, this message translates to:
-  /// **'Connessione OBD'**
+  /// **'Connessione OBDLink MX+'**
   String get obdConnection;
 
   /// No description provided for @validReadings.
@@ -305,7 +305,7 @@ abstract class AppLocalizations {
   /// No description provided for @desktopNotice.
   ///
   /// In it, this message translates to:
-  /// **'Su desktop: importa i viaggi o esplora la demo.'**
+  /// **'Su desktop: importa i viaggi.'**
   String get desktopNotice;
 
   /// No description provided for @diagnosticsLogs.
@@ -329,26 +329,8 @@ abstract class AppLocalizations {
   /// No description provided for @telemetryTitle.
   ///
   /// In it, this message translates to:
-  /// **'Il motore, dal vivo.'**
+  /// **'Telemetria live'**
   String get telemetryTitle;
-
-  /// No description provided for @telemetrySubtitle.
-  ///
-  /// In it, this message translates to:
-  /// **'Uno sguardo ai valori della centralina.'**
-  String get telemetrySubtitle;
-
-  /// No description provided for @waitingCar.
-  ///
-  /// In it, this message translates to:
-  /// **'In attesa della tua auto'**
-  String get waitingCar;
-
-  /// No description provided for @connectFromHome.
-  ///
-  /// In it, this message translates to:
-  /// **'Collega dalla Home'**
-  String get connectFromHome;
 
   /// No description provided for @recordingInProgress.
   ///
@@ -407,14 +389,8 @@ abstract class AppLocalizations {
   /// No description provided for @profileTitle.
   ///
   /// In it, this message translates to:
-  /// **'Il tuo veicolo.'**
+  /// **'Il tuo profilo'**
   String get profileTitle;
-
-  /// No description provided for @profileSubtitle.
-  ///
-  /// In it, this message translates to:
-  /// **'La tua Fiesta e gli strumenti di bordo.'**
-  String get profileSubtitle;
 
   /// No description provided for @engine.
   ///
@@ -575,7 +551,7 @@ abstract class AppLocalizations {
   /// No description provided for @engineZonesNotice.
   ///
   /// In it, this message translates to:
-  /// **'Favorevole: regime tra le soglie e carico tra 20% e soglia alta. Sfavorevole: alto regime, oppure basso regime con carico elevato.'**
+  /// **'Zona favorevole: regime tra le soglie e carico tra 20% e soglia alta. Penalità 0,5 negli altri casi; 1 ad alto regime o a basso regime con carico elevato.'**
   String get engineZonesNotice;
 
   /// No description provided for @lowRpm.
@@ -665,7 +641,7 @@ abstract class AppLocalizations {
   /// No description provided for @studyProfile.
   ///
   /// In it, this message translates to:
-  /// **'Profilo di studio: Ford Fiesta 2021 · OBDLink MX+\nAcquisizione mobile in primo piano. Android: RFCOMM. iOS: ExternalAccessory, previa configurazione e abilitazione del produttore. Desktop: importazione e analisi.\nNessuna scrittura ECU o cancellazione errori è esposta nell’app.'**
+  /// **'Profilo di studio: Ford Fiesta 2021 · OBDLink MX+\nAcquisizione Android in primo piano tramite Bluetooth RFCOMM. L’app legge i dati OBD senza scrivere sulla centralina né cancellare errori.'**
   String get studyProfile;
 
   /// No description provided for @modelSaved.
@@ -677,14 +653,8 @@ abstract class AppLocalizations {
   /// No description provided for @tripsTitle.
   ///
   /// In it, this message translates to:
-  /// **'Ogni viaggio ha una storia.'**
+  /// **'I tuoi viaggi'**
   String get tripsTitle;
-
-  /// No description provided for @tripsSubtitle.
-  ///
-  /// In it, this message translates to:
-  /// **'Ritrova i percorsi, esplora il motore e confronta i risultati.'**
-  String get tripsSubtitle;
 
   /// No description provided for @importing.
   ///
@@ -992,32 +962,88 @@ abstract class AppLocalizations {
   /// **'Tempo mappato'**
   String get mappedTime;
 
+  /// No description provided for @comparisonDuration.
+  ///
+  /// In it, this message translates to:
+  /// **'Durata osservata'**
   String get comparisonDuration;
 
+  /// No description provided for @comparisonFuelLiters.
+  ///
+  /// In it, this message translates to:
+  /// **'Carburante stimato · L'**
   String get comparisonFuelLiters;
 
+  /// No description provided for @comparisonAverageSpeed.
+  ///
+  /// In it, this message translates to:
+  /// **'Velocità media valida · km/h'**
   String get comparisonAverageSpeed;
 
+  /// No description provided for @comparisonEventRate.
+  ///
+  /// In it, this message translates to:
+  /// **'Eventi bruschi · al minuto'**
   String get comparisonEventRate;
 
+  /// No description provided for @comparisonMapCoverage.
+  ///
+  /// In it, this message translates to:
+  /// **'Copertura mappa · %'**
   String get comparisonMapCoverage;
 
+  /// No description provided for @comparisonSpeedCoverage.
+  ///
+  /// In it, this message translates to:
+  /// **'Copertura velocità · %'**
   String get comparisonSpeedCoverage;
 
+  /// No description provided for @comparisonFuelCoverage.
+  ///
+  /// In it, this message translates to:
+  /// **'Copertura fuel rate · %'**
   String get comparisonFuelCoverage;
 
+  /// No description provided for @comparisonDelta.
+  ///
+  /// In it, this message translates to:
+  /// **'Δ (B − A)'**
   String get comparisonDelta;
 
+  /// No description provided for @comparisonMetrics.
+  ///
+  /// In it, this message translates to:
+  /// **'Riepilogo delle metriche'**
   String get comparisonMetrics;
 
+  /// No description provided for @comparisonScoreBreakdown.
+  ///
+  /// In it, this message translates to:
+  /// **'Confronto delle componenti dello score'**
   String get comparisonScoreBreakdown;
 
+  /// No description provided for @comparisonMaps.
+  ///
+  /// In it, this message translates to:
+  /// **'Distribuzione RPM–carico'**
   String get comparisonMaps;
 
-  String comparisonHigherScore(String name, String score);
+  /// No description provided for @comparisonHigherScore.
+  ///
+  /// In it, this message translates to:
+  /// **'Score maggiore: {name} · {score}/100'**
+  String comparisonHigherScore(Object name, Object score);
 
+  /// No description provided for @comparisonSimilarScores.
+  ///
+  /// In it, this message translates to:
+  /// **'Score sostanzialmente uguali'**
   String get comparisonSimilarScores;
 
+  /// No description provided for @comparisonDifferentCoverage.
+  ///
+  /// In it, this message translates to:
+  /// **'I due score usano componenti diverse perché alcuni dati OBD mancano in uno dei viaggi: il confronto del totale è indicativo.'**
   String get comparisonDifferentCoverage;
 
   /// No description provided for @mapCsvColumns.
@@ -1093,6 +1119,9 @@ abstract class AppLocalizations {
   String get fuel;
 
   /// No description provided for @zoneFavorability.
+  ///
+  /// In it, this message translates to:
+  /// **'Zone favorevoli'**
   String get zoneFavorability;
 
   /// No description provided for @penalty.
@@ -1120,6 +1149,9 @@ abstract class AppLocalizations {
   String get fuelLegend;
 
   /// No description provided for @favorabilityLegend.
+  ///
+  /// In it, this message translates to:
+  /// **'Da 0 a 100 · favorevolezza secondo le regole'**
   String get favorabilityLegend;
 
   /// No description provided for @penaltyLegend.
@@ -1603,9 +1635,15 @@ abstract class AppLocalizations {
   String get linkLostTripPaused;
 
   /// No description provided for @zoneReason.
+  ///
+  /// In it, this message translates to:
+  /// **'Zona favorevole: {lowRpm} ≤ RPM < {highRpm} e 20% ≤ carico < {highLoad}%; costo 0,5 nelle altre zone e 1 ad alto regime o a bassi giri con carico elevato.'**
   String zoneReason(String lowRpm, String highRpm, String highLoad);
 
   /// No description provided for @smoothReason.
+  ///
+  /// In it, this message translates to:
+  /// **'−5 punti per evento al minuto; accelerazione derivata dalla velocità OBD. Soglie: +{acceleration} e −{braking} m/s².'**
   String smoothReason(String acceleration, String braking);
 
   /// No description provided for @scoreRequiresData.
@@ -1623,8 +1661,31 @@ abstract class AppLocalizations {
   /// No description provided for @scoreWeightsNormalized.
   ///
   /// In it, this message translates to:
-  /// **'I pesi delle componenti disponibili sono rinormalizzati. '**
+  /// **'Le componenti con meno di 5 secondi di dati validi sono escluse e i pesi rimanenti sono rinormalizzati. '**
   String get scoreWeightsNormalized;
+
+  /// No description provided for @scoreFormula.
+  ///
+  /// In it, this message translates to:
+  /// **'Media ponderata dei contributi: {formula}. '**
+  String scoreFormula(String formula);
+
+  /// No description provided for @scoreContribution.
+  ///
+  /// In it, this message translates to:
+  /// **'{name} {value}/100 × {weight}% = {points} punti'**
+  String scoreContribution(
+    String name,
+    String value,
+    String weight,
+    String points,
+  );
+
+  /// No description provided for @scoreEventsDetailed.
+  ///
+  /// In it, this message translates to:
+  /// **'Eventi inclusi: {accelerations} accelerazioni brusche e {brakings} frenate brusche, rilevate dalla velocità OBD. '**
+  String scoreEventsDetailed(String accelerations, String brakings);
 
   /// No description provided for @saveSettingsFailed.
   ///
@@ -2175,19 +2236,8 @@ abstract class AppLocalizations {
   /// No description provided for @scoreIntro.
   ///
   /// In it, this message translates to:
-  /// **'Score {score}/100 su {components} componenti disponibili. '**
+  /// **'Score {score}/100, media ponderata di {components} componenti di guida. '**
   String scoreIntro(String score, String components);
-
-  String scoreFormula(String formula);
-
-  String scoreContribution(
-    String name,
-    String value,
-    String weight,
-    String points,
-  );
-
-  String scoreEventsDetailed(String accelerations, String brakings);
 
   /// No description provided for @scoreMapPortion.
   ///
