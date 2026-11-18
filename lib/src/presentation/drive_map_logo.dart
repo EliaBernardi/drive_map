@@ -52,17 +52,24 @@ class _LogoPainter extends CustomPainter {
       Offset(65, 81),
     ], const Color(0xFF718179));
     face(const [
-      Offset(26, 58),
-      Offset(28, 57),
-      Offset(38, 63),
-      Offset(36, 64),
+      Offset(34, 56.5),
+      Offset(36, 55.4),
+      Offset(44, 59.9),
+      Offset(42, 61),
     ], const Color(0xFFE8EDE5));
     face(const [
-      Offset(60, 77),
-      Offset(62, 76),
-      Offset(72, 82),
-      Offset(70, 83),
+      Offset(54, 68.2),
+      Offset(56, 67.1),
+      Offset(64, 71.6),
+      Offset(62, 72.7),
     ], const Color(0xFFE8EDE5));
+
+    // Align the car with the road and place its center on the lane centerline.
+    canvas.save();
+    canvas.translate(50, 64.5);
+    canvas.rotate(0.5071);
+    canvas.scale(.82, .45);
+    canvas.translate(-50, -48.5);
 
     // Wheels sit behind the body, on both visible faces.
     for (final point in const [
@@ -115,17 +122,18 @@ class _LogoPainter extends CustomPainter {
       Offset(48, 51),
     ], const Color(0xFF88B8AB));
     face(const [
-      Offset(55, 60),
-      Offset(61, 57),
-      Offset(61, 61),
-      Offset(55, 64),
+      Offset(68.5, 49.8),
+      Offset(71, 48.4),
+      Offset(72.6, 49.3),
+      Offset(70.1, 50.7),
     ], const Color(0xFFFFEAB1));
     face(const [
-      Offset(70, 51),
-      Offset(75, 48),
-      Offset(75, 52),
-      Offset(70, 55),
+      Offset(72.5, 47.6),
+      Offset(75, 46.2),
+      Offset(76.6, 47.1),
+      Offset(74.1, 48.5),
     ], const Color(0xFFFFEAB1));
+    canvas.restore();
   }
 
   @override
