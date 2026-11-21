@@ -5,6 +5,21 @@ import '../localization/localization.dart';
 import '../theme/app_theme.dart';
 export '../theme/app_theme.dart' show DriveColors;
 
+class DriveMapMark extends StatelessWidget {
+  const DriveMapMark({super.key, required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Image.asset(
+    'lib/src/assets/logo.png',
+    width: size,
+    height: size * .68,
+    fit: BoxFit.cover,
+    semanticLabel: 'DriveMap',
+  );
+}
+
 class Panel extends StatelessWidget {
   const Panel({
     super.key,

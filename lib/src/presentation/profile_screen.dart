@@ -5,7 +5,6 @@ import '../localization/localization.dart';
 import '../providers.dart';
 import '../localization/locale_controller.dart';
 import 'components.dart';
-import 'drive_map_logo.dart';
 import 'settings_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -27,7 +26,7 @@ class ProfileScreen extends ConsumerWidget {
             padding: 18,
             child: Column(
               children: [
-                const DriveMapLogo(size: 128),
+                const DriveMapMark(size: 128),
                 const SizedBox(height: 14),
                 const Text(
                   'Ford Fiesta',

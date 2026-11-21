@@ -10,7 +10,7 @@
   "homeTitle": "Your car",
   "homeSubtitle": "Your car, one trip at a time.",
   "garage": "IN YOUR GARAGE",
-  "vehicleSpecs": "2021 · 1.0 EcoBoost\n125 PS · mild hybrid",
+  "vehicleSpecs": "2021 · 1.0 EcoBoost\n125 HP · mild hybrid",
   "dismissMessage": "Dismiss message",
   "demoActive": "Demo active · simulated data",
   "foregroundNotice": "Data collection pauses when the app goes into the background. The screen stays awake while OBD is connected.",

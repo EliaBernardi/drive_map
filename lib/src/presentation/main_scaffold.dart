@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../theme/app_theme.dart';
 import '../localization/localization.dart';
-import 'drive_map_logo.dart';
+import 'components.dart';
 
 enum MainDestination {
   home(Icons.home_outlined, Icons.home_rounded),
@@ -58,7 +58,7 @@ class MainScaffold extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(16, 7, 20, 10),
                   child: Row(
                     children: [
-                      const DriveMapLogo(size: 46),
+                      const DriveMapMark(size: 46),
                       const SizedBox(width: 10),
                       const Expanded(
                         child: Align(

@@ -7,7 +7,6 @@ import '../features/obd/obd_transport.dart';
 import '../providers.dart';
 import 'adapter_check_screen.dart';
 import 'components.dart';
-import 'drive_map_logo.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({
@@ -35,7 +34,7 @@ class HomeScreen extends ConsumerWidget {
           SectionTitle(context.l10n.homeTitle),
           Panel(
             padding: 20,
-            verticalPadding: 8,
+            verticalPadding: 12,
             color: DriveColors.mint,
             child: Row(
               children: [
@@ -65,7 +64,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const DriveMapLogo(size: 112),
+                const DriveMapMark(size: 112),
               ],
             ),
           ),
